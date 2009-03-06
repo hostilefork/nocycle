@@ -1,6 +1,6 @@
 //
 //  nstate.hpp - Template for variable that can only take on values 
-//     from [0..radix-1], and a vector type which is able to
+//     from [0..radix-1], and an array type which is able to
 //     store a series of these variables and take advantage of 
 //     the knowledge of the constraint in order to compact them
 //     closer to their fundamentally minimal size.
@@ -154,7 +154,7 @@ public:
 		{
 		}
 	
-        void operator&(); // not defined
+		void operator&(); // not defined
 		void do_assign(Nstate<radix> x) {
 			m_tv.m_buffer[m_indexIntoBuffer] = 
 				SetDigitInPackedValue(m_tv.m_buffer[m_indexIntoBuffer], m_digit, x);
@@ -209,9 +209,9 @@ public:
 				m_buffer[newBufferSize - 1] =
 					SetDigitInPackedValue(m_buffer[newBufferSize - 1], eraseDigit, 0); 
 		} else if ((newBufferSize < oldBufferSize) && (newMaxDigitNeeded > 0)) {
-			// If the number of tristates we are using isn't an even multiple of 20, then
-			// shrinking and growing will leave some residual values we need to reset
-			// to zero in the last element of the vector.
+			// If the number of tristates we are using isn't an even multiple of the 
+			// # of states that fit in a packed type, then shrinking will leave some 
+			// residual values we need to reset to zero in the last element of the vector.
 			for (int eraseDigit = newMaxDigitNeeded; eraseDigit < NstatesInPackedType(); eraseDigit++)
 				m_buffer[newBufferSize - 1] =
 					SetDigitInPackedValue(m_buffer[newBufferSize - 1], eraseDigit, 0);
