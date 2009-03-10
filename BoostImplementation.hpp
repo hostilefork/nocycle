@@ -26,6 +26,8 @@
 #include "OrientedGraph.hpp"
 #include "DirectedAcyclicGraph.hpp"
 
+namespace nocycle {
+
 struct BoostVertexProperties {
 #if BOOSTIMPLEMENTATION_TRACK_EXISTENCE
 	bool exists;
@@ -454,5 +456,7 @@ public:
 	}
 	virtual ~BoostDirectedAcyclicGraph() { }
 };
+
+} // end namespace nocycle
 
 #endif

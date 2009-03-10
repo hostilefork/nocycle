@@ -23,9 +23,11 @@
 #define NUM_TEST_NODES 128
 const float REMOVE_PROBABILITY = 0.0/8.0; // zero for now
 
+namespace nocycle {
+
 bool DirectedAcyclicGraph::SelfTest() {
 
-	// Here are some simple test cases that can reveal simple, basic breaks and are
+	// Here are some simple test cases that can reveal basic breaks and are
 	// easier to debug than random testing.
 	
 	if (true) { // Direct cycle
@@ -220,5 +222,6 @@ bool DirectedAcyclicGraph::SelfTest() {
 	return true;
 }
 
+} // end namespace nocycle
 
 #endif

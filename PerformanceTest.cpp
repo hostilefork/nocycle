@@ -44,7 +44,7 @@ int main (int argc, char * const argv[]) {
 		return 1;
 	}
 	
-	if (NstateArray<3>::SelfTest()) {
+	if (nstate::NstateArray<3>::SelfTest()) {
 		std::cout << "SUCCESS: All NstateArray SelfTest() passed regression." << std::endl;
 	} else {
 		return 1;
@@ -52,7 +52,7 @@ int main (int argc, char * const argv[]) {
 #endif
 
 #if REGRESSION_TESTS && ORIENTEDGRAPH_SELFTEST	
-	if (OrientedGraph::SelfTest()) {
+	if (nocycle::OrientedGraph::SelfTest()) {
 		std::cout << "SUCCESS: All OrientedGraph SelfTest() passed regression." << std::endl;
 	} else {
 		return 1;
@@ -60,7 +60,7 @@ int main (int argc, char * const argv[]) {
 #endif
 	
 #if REGRESSION_TESTS && DIRECTEDACYCLICGRAPH_SELFTEST
-	if (DirectedAcyclicGraph::SelfTest()) {
+	if (nocycle::DirectedAcyclicGraph::SelfTest()) {
 		std::cout << "SUCCESS: All DirectedAcyclicGraph SelfTest() passed regression." << std::endl;
 	} else {
 		return 1;
@@ -71,7 +71,7 @@ int main (int argc, char * const argv[]) {
 	unsigned numInsertions = 0;
 	unsigned numDeletions = 0;
 	
-	typedef RandomEdgePicker<BoostDirectedAcyclicGraph> DAGType;
+	typedef nocycle::RandomEdgePicker<nocycle::BoostDirectedAcyclicGraph> DAGType;
 	DAGType dag (NUM_TEST_NODES);
 	
 	for (DAGType::VertexID vertex = 0; vertex < NUM_TEST_NODES; vertex++) {
@@ -113,7 +113,7 @@ int main (int argc, char * const argv[]) {
 			boost::posix_time::ptime timeStart = boost::posix_time::microsec_clock::local_time();
 			try {
 				dag.AddEdge(vertexSource, vertexDest);
-			} catch (bad_cycle& e) {
+			} catch (nocycle::bad_cycle& e) {
 				causedCycle = true;
 			}
 			boost::posix_time::time_duration timeDuration = (boost::posix_time::microsec_clock::local_time() - timeStart);

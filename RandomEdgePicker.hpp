@@ -20,6 +20,8 @@
 
 #include "NocycleSettings.hpp"
 
+namespace nocycle {
+
 // This class is a template of which base class you wish to apply it to.
 // I wanted to be able to quickly remove a random edge from the graph.  Unfortunately, in
 // a dense matrix representation in which there can be many missing edges... the edges can
@@ -151,5 +153,7 @@ public:
 	virtual ~RandomEdgePicker() {
 	}
 };
+
+} // end namespace nocycle
 
 #endif

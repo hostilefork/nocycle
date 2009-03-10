@@ -74,8 +74,6 @@ public:
 	static bool SelfTest(); // Class is self-testing for regression
 };
 
-} // end namespace nstate
-
 
 //
 // NSTATE ARRAY
@@ -127,8 +125,8 @@ private:
 	inline PackedType PowerForDigit(unsigned digit) const {
 		return m_cachedPowerTable[digit+1];
 	}
-	nstate::Nstate<radix> GetDigitInPackedValue(PackedType packed, unsigned digit) const;
-	PackedType SetDigitInPackedValue(PackedType packed, unsigned digit, nstate::Nstate<radix> t) const;
+	Nstate<radix> GetDigitInPackedValue(PackedType packed, unsigned digit) const;
+	PackedType SetDigitInPackedValue(PackedType packed, unsigned digit, Nstate<radix> t) const;
 	
 public:
 	// Derived from boost's dynamic_bitset
@@ -151,16 +149,16 @@ public:
 		}
 	
 		void operator&(); // not defined
-		void do_assign(nstate::Nstate<radix> x) {
+		void do_assign(Nstate<radix> x) {
 			m_na.m_buffer[m_indexIntoBuffer] = 
 				m_na.SetDigitInPackedValue(m_na.m_buffer[m_indexIntoBuffer], m_digit, x);
 		}
     public:
         // An automatically generated copy constructor.
-		reference& operator=(nstate::Nstate<radix> x) { do_assign(x); return *this; } // for b[i] = x
+		reference& operator=(Nstate<radix> x) { do_assign(x); return *this; } // for b[i] = x
 	    reference& operator=(const reference& rhs) { do_assign(rhs); return *this; } // for b[i] = b[j]
 
-        operator nstate::Nstate<radix>() const {
+        operator Nstate<radix>() const {
 			return m_na.GetDigitInPackedValue(m_na.m_buffer[m_indexIntoBuffer], m_digit);
 		}
 		operator unsigned() const {
@@ -173,7 +171,7 @@ public:
 		unsigned digit = pos % NstatesInPackedType();
 		return reference (*this, indexIntoBuffer, digit);
 	}
-    nstate::Nstate<radix> operator[](size_t pos) const {
+    Nstate<radix> operator[](size_t pos) const {
 		nocycle_assert(pos < m_max); // STL will only check bounds on integer boundaries.
 		size_t indexIntoBuffer = pos / NstatesInPackedType();
 		unsigned digit = pos % NstatesInPackedType();
@@ -261,7 +259,7 @@ template<int radix> unsigned NstateArray<radix>::NSTATES_IN_UNSIGNED = 0;
 //
 
 template <int radix>
-nstate::Nstate<radix> NstateArray<radix>::GetDigitInPackedValue(PackedType packed, unsigned digit) const {
+Nstate<radix> NstateArray<radix>::GetDigitInPackedValue(PackedType packed, unsigned digit) const {
 
 	// Generalized from Mark Bessey's post in the Joel on Software forum
 	// http://discuss.joelonsoftware.com/default.asp?joel.3.205331.14
@@ -281,7 +279,7 @@ nstate::Nstate<radix> NstateArray<radix>::GetDigitInPackedValue(PackedType packe
 // For why "typename" is needed, see:
 // http://bytes.com/groups/c/538264-expected-constructor-destructor-type-conversion-before
 template <int radix>
-typename NstateArray<radix>::PackedType NstateArray<radix>::SetDigitInPackedValue(PackedType packed, unsigned digit, nstate::Nstate<radix> t) const {
+typename NstateArray<radix>::PackedType NstateArray<radix>::SetDigitInPackedValue(PackedType packed, unsigned digit, Nstate<radix> t) const {
 	nocycle_assert(digit < NstatesInPackedType());
 	
 	PackedType powForDigitPlusOne = PowerForDigit(digit+1);
@@ -300,6 +298,7 @@ typename NstateArray<radix>::PackedType NstateArray<radix>::SetDigitInPackedValu
 	return upperPart + setPart + lowerPart;
 }
 
+} // temporary end of namespace nstate
 
 
 //
@@ -331,7 +330,7 @@ bool Nstate<radix>::SelfTest() {
 		Nstate<radix> t3 (radix);
 		std::cout << "FAILURE: Did not detect bad Nstate construction." << std::endl;
 		return false;
-	} catch (nstate::bad_nstate& e) {
+	} catch (bad_nstate& e) {
 	}
 	
 	try {
@@ -339,13 +338,11 @@ bool Nstate<radix>::SelfTest() {
 		tSet = radix;
 		std::cout << "FAILURE: Did not detect bad Nstate SetValue." << std::endl;
 		return false;
-	} catch (nstate::bad_nstate& e) {
+	} catch (bad_nstate& e) {
 	}
 
     return true;
 }
-
-} // end namespace nstate
 
 template <int radix>
 bool NstateArray<radix>::SelfTest() {
@@ -354,7 +351,7 @@ bool NstateArray<radix>::SelfTest() {
 		NstateArray<radix> nv (initialSize);
 		std::vector<unsigned> v (initialSize);
 		for (size_t index = 0; index < initialSize; index++) {
-			nstate::Nstate<radix> tRand (rand() % radix);
+			Nstate<radix> tRand (rand() % radix);
 			nv[index] = tRand;
 			v[index] = tRand;
 		}
@@ -407,5 +404,7 @@ bool NstateArray<radix>::SelfTest() {
 
 	return true;
 }
+
+} // end namespace nstate
 
 #endif

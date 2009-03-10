@@ -22,6 +22,8 @@
 #include "BoostImplementation.hpp"
 #include "RandomEdgePicker.hpp"
 
+namespace nocycle {
+
 bool OrientedGraph::SelfTest() {
 
 	const unsigned NUM_TEST_NODES = 128;
@@ -76,5 +78,7 @@ bool OrientedGraph::SelfTest() {
 	
 	return true;
 }
+
+} // end namespace nocycle
 
 #endif

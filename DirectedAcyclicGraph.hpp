@@ -23,6 +23,8 @@
 
 #include <set>
 
+namespace nocycle {
+
 // 
 // EXCEPTIONS
 // See: http://www.cplusplus.com/doc/tutorial/exceptions.html
@@ -758,5 +760,7 @@ public:
 public:
 	static bool SelfTest();
 };
+
+}
 
 #endif

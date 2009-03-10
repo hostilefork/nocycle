@@ -21,6 +21,8 @@
 // GCC limitation, Static data member templates are not supported.
 // http://www.cs.utah.edu/dept/old/texinfo/gcc/gppFAQ.html#SEC32
 
+namespace nstate {
+
 // due to complications with static members of templates, using a single external variable
 // and a map works on more compilers
 std::map<unsigned, std::vector<unsigned> > nstatePowerTables;
@@ -31,3 +33,5 @@ std::map<unsigned, std::vector<unsigned> > nstatePowerTables;
 // http://c2.com/cgi/wiki?TooFewTemplateParameterLists
 //template<> std::vector<unsigned> Nstate<3>::power_table;
 //template<> unsigned Nstate<3>::NSTATES_IN_UNSIGNED = 0;
+
+}

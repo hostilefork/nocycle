@@ -26,6 +26,8 @@
 
 #include "Nstate.hpp"
 
+namespace nocycle {
+
 // The graph will grow dynamically to accomodate
 class OrientedGraph {
 public:
@@ -52,7 +54,7 @@ public:
 	};
 	
 private:
-	NstateArray<3> m_buffer;
+	nstate::NstateArray<3> m_buffer;
 
 private:
 	// E(N) => N*(N-1)/2
@@ -563,5 +565,7 @@ public:
 	static bool SelfTest();
 #endif
 };
+
+} // end namespace nocycle
 
 #endif
