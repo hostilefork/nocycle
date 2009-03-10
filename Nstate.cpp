@@ -1,5 +1,5 @@
 //
-//  nstate.cpp - Template for variable that can only take on values 
+//  Nstate.cpp - Template for variable that can only take on values 
 //     from [0..radix-1], and an array type which is able to compactly
 //     store a series of these variables by taking advantage of 
 //     the knowledge of the constraint.

@@ -1,5 +1,5 @@
 //
-//  nstate.hpp - Template for variable that can only take on values 
+//  Nstate.hpp - Template for variable that can only take on values 
 //     from [0..radix-1], and an array type which is able to
 //     store a series of these variables and take advantage of 
 //     the knowledge of the constraint in order to compact them
@@ -13,19 +13,21 @@
 // See http://hostilefork.com/nstate for documentation.
 //
 
-#ifndef __NSTATE_H__
-#define __NSTATE_H__
+#ifndef __NSTATE_HPP__
+#define __NSTATE_HPP__
 
-#include <assert.h>
+#include "NocycleSettings.hpp"
+
 #include <vector>
 #include <map>
 #include <exception>
 #include <math.h>
 
-
 //
 // NSTATE
 //
+
+namespace nstate {
 
 // see: http://www.cplusplus.com/doc/tutorial/exceptions.html
 class bad_nstate : public std::exception {
@@ -33,6 +35,7 @@ class bad_nstate : public std::exception {
 		return "Invalid Nstate value";
 	}
 };
+
 
 template<int radix> 
 class Nstate {
@@ -70,6 +73,7 @@ public:
 	static bool SelfTest(); // Class is self-testing for regression
 };
 
+}
 
 
 //
@@ -100,6 +104,9 @@ private:
 	size_t m_max;
 	
 private:
+	PackedType* m_cachedPowerTable; // array allocated for fast access, first element is length! []
+	
+private:
 	static void EnsurePowerTableBuiltForRadix() {
 		if (nstatePowerTables.count(radix) == 0) {
 			unsigned nstatesInUnsigned = static_cast<unsigned>(floor(log(2)/log(radix)*CHAR_BIT*sizeof(unsigned)));
@@ -110,29 +117,17 @@ private:
 				value = value * radix;
 			}
 			nstatePowerTables[radix] = powerTable;
-			assert(nstatePowerTables.count(radix) != 0);
+			nocycle_assert(nstatePowerTables.count(radix) != 0);
 		}
 	}
-	static size_t NstatesInPackedType() {
-		static size_t cachedNstatesInPackedType = 0;
-		if (cachedNstatesInPackedType == 0) {
-			EnsurePowerTableBuiltForRadix();
-			cachedNstatesInPackedType = nstatePowerTables[radix].size();
-		}
-		
-		return cachedNstatesInPackedType;
+	inline size_t NstatesInPackedType() const {
+		return m_cachedPowerTable[0];
 	}
-	static PackedType PowerForDigit(unsigned digit) {
-		static std::vector<unsigned> cachedPowerTable;
-		if (cachedPowerTable.empty()) {
-			EnsurePowerTableBuiltForRadix();
-			cachedPowerTable = nstatePowerTables[radix];
-			assert(!cachedPowerTable.empty());
-		}
-		return cachedPowerTable[digit];
+	inline PackedType PowerForDigit(unsigned digit) const {
+		return m_cachedPowerTable[digit+1];
 	}
-	static Nstate<radix> GetDigitInPackedValue(PackedType packed, unsigned digit);
-	static PackedType SetDigitInPackedValue(PackedType packed, unsigned digit, Nstate<radix> t);
+	nstate::Nstate<radix> GetDigitInPackedValue(PackedType packed, unsigned digit) const;
+	PackedType SetDigitInPackedValue(PackedType packed, unsigned digit, nstate::Nstate<radix> t) const;
 	
 public:
 	// Derived from boost's dynamic_bitset
@@ -144,41 +139,41 @@ public:
 		friend class NstateArray<radix>;
 		
 	private:
-		NstateArray<radix>& m_tv;
+		NstateArray<radix>& m_na;
 		unsigned m_indexIntoBuffer;
 		unsigned m_digit;
-		reference(NstateArray<radix> &tv, size_t indexIntoBuffer, unsigned digit) :
-			m_tv (tv),
+		reference(NstateArray<radix> &na, size_t indexIntoBuffer, unsigned digit) :
+			m_na (na),
 			m_indexIntoBuffer (indexIntoBuffer),
 			m_digit (digit)
 		{
 		}
 	
 		void operator&(); // not defined
-		void do_assign(Nstate<radix> x) {
-			m_tv.m_buffer[m_indexIntoBuffer] = 
-				SetDigitInPackedValue(m_tv.m_buffer[m_indexIntoBuffer], m_digit, x);
+		void do_assign(nstate::Nstate<radix> x) {
+			m_na.m_buffer[m_indexIntoBuffer] = 
+				m_na.SetDigitInPackedValue(m_na.m_buffer[m_indexIntoBuffer], m_digit, x);
 		}
     public:
         // An automatically generated copy constructor.
-		reference& operator=(Nstate<radix> x) { do_assign(x); return *this; } // for b[i] = x
+		reference& operator=(nstate::Nstate<radix> x) { do_assign(x); return *this; } // for b[i] = x
 	    reference& operator=(const reference& rhs) { do_assign(rhs); return *this; } // for b[i] = b[j]
 
-        operator Nstate<radix>() const {
-			return GetDigitInPackedValue(m_tv.m_buffer[m_indexIntoBuffer], m_digit);
+        operator nstate::Nstate<radix>() const {
+			return m_na.GetDigitInPackedValue(m_na.m_buffer[m_indexIntoBuffer], m_digit);
 		}
 		operator unsigned() const {
-			return GetDigitInPackedValue(m_tv.m_buffer[m_indexIntoBuffer], m_digit);
+			return m_na.GetDigitInPackedValue(m_na.m_buffer[m_indexIntoBuffer], m_digit);
 		}
     };
     reference operator[](size_t pos) {
-		assert(pos < m_max); // STL will only check bounds on integer boundaries
+		nocycle_assert(pos < m_max); // STL will only check bounds on integer boundaries
 		size_t indexIntoBuffer = pos / NstatesInPackedType();
 		unsigned digit = pos % NstatesInPackedType();
 		return reference (*this, indexIntoBuffer, digit);
 	}
-    Nstate<radix> operator[](size_t pos) const {
-		assert(pos < m_max); // STL will only check bounds on integer boundaries.
+    nstate::Nstate<radix> operator[](size_t pos) const {
+		nocycle_assert(pos < m_max); // STL will only check bounds on integer boundaries.
 		size_t indexIntoBuffer = pos / NstatesInPackedType();
 		unsigned digit = pos % NstatesInPackedType();
 		return GetDigitInPackedValue(m_buffer[indexIntoBuffer], digit);
@@ -226,9 +221,16 @@ public:
 	NstateArray<radix>(const size_t initial_size) : 
 		m_max (0) 
 	{
+		EnsurePowerTableBuiltForRadix();
+		m_cachedPowerTable = new PackedType[nstatePowerTables[radix].size() + 1];
+		m_cachedPowerTable[0] = nstatePowerTables[radix].size();
+		for (unsigned index = 0; index < nstatePowerTables[radix].size(); index++) {
+			m_cachedPowerTable[index+1] = nstatePowerTables[radix][index];
+		}
 		ResizeWithZeros(initial_size);
 	}
 	virtual ~NstateArray<radix>() {
+		delete[] m_cachedPowerTable;
 	}
 	
 public:
@@ -258,12 +260,12 @@ template<int radix> unsigned NstateArray<radix>::NSTATES_IN_UNSIGNED = 0;
 //
 
 template <int radix>
-Nstate<radix> NstateArray<radix>::GetDigitInPackedValue(PackedType packed, unsigned digit) {
+nstate::Nstate<radix> NstateArray<radix>::GetDigitInPackedValue(PackedType packed, unsigned digit) const {
 
 	// Generalized from Mark Bessey's post in the Joel on Software forum
 	// http://discuss.joelonsoftware.com/default.asp?joel.3.205331.14
 	
-	assert(digit < NstatesInPackedType());
+	nocycle_assert(digit < NstatesInPackedType());
 	// lop off unused top digits - you can skip this
 	// for the most-significant digit
 	PackedType value = packed;
@@ -278,8 +280,8 @@ Nstate<radix> NstateArray<radix>::GetDigitInPackedValue(PackedType packed, unsig
 // For why "typename" is needed, see:
 // http://bytes.com/groups/c/538264-expected-constructor-destructor-type-conversion-before
 template <int radix>
-typename NstateArray<radix>::PackedType NstateArray<radix>::SetDigitInPackedValue(PackedType packed, unsigned digit, Nstate<radix> t) {
-	assert(digit < NstatesInPackedType());
+typename NstateArray<radix>::PackedType NstateArray<radix>::SetDigitInPackedValue(PackedType packed, unsigned digit, nstate::Nstate<radix> t) const {
+	nocycle_assert(digit < NstatesInPackedType());
 	
 	PackedType powForDigitPlusOne = PowerForDigit(digit+1);
 	PackedType powForDigit = PowerForDigit(digit);
@@ -312,6 +314,8 @@ typename NstateArray<radix>::PackedType NstateArray<radix>::SetDigitInPackedValu
 #include <cstdlib>
 #include <iostream>
 
+namespace nstate {
+
 template <int radix>
 bool Nstate<radix>::SelfTest() {
 	for (unsigned test = 0; test < radix; test++) {
@@ -326,7 +330,7 @@ bool Nstate<radix>::SelfTest() {
 		Nstate<radix> t3 (radix);
 		std::cout << "FAILURE: Did not detect bad Nstate construction." << std::endl;
 		return false;
-	} catch (bad_nstate& e) {
+	} catch (nstate::bad_nstate& e) {
 	}
 	
 	try {
@@ -334,20 +338,22 @@ bool Nstate<radix>::SelfTest() {
 		tSet = radix;
 		std::cout << "FAILURE: Did not detect bad Nstate SetValue." << std::endl;
 		return false;
-	} catch (bad_nstate& e) {
+	} catch (nstate::bad_nstate& e) {
 	}
 
     return true;
 }
 
+} // end namespace nstate
+
 template <int radix>
 bool NstateArray<radix>::SelfTest() {
 	// Basic allocation and set test
-	for (size_t initialSize = 0; initialSize < NstateArray<radix>::NstatesInPackedType() * 256; initialSize++) {
+	for (size_t initialSize = 0; initialSize < 1024; initialSize++) {
 		NstateArray<radix> nv (initialSize);
 		std::vector<unsigned> v (initialSize);
 		for (size_t index = 0; index < initialSize; index++) {
-			Nstate<radix> tRand (rand() % radix);
+			nstate::Nstate<radix> tRand (rand() % radix);
 			nv[index] = tRand;
 			v[index] = tRand;
 		}
@@ -368,7 +374,7 @@ bool NstateArray<radix>::SelfTest() {
 			newSmallerSize = (rand() % initialSize);
 			nv.ResizeWithZeros(newSmallerSize);
 			v.resize(newSmallerSize, 0);
-			assert(nv.Length() == v.size());
+			nocycle_assert(nv.Length() == v.size());
 		
 			for (size_t index = 0; index < newSmallerSize; index++) {
 				if (nv[index] != v[index]) {
@@ -385,7 +391,7 @@ bool NstateArray<radix>::SelfTest() {
 		size_t newLargerSize = newSmallerSize + (rand() % 128);
 		nv.ResizeWithZeros(newLargerSize);
 		v.resize(newLargerSize, 0);
-		assert(nv.Length() == v.size());
+		nocycle_assert(nv.Length() == v.size());
 
 		for (size_t index = 0; index < newLargerSize; index++) {
 			if (nv[index] != v[index]) {
