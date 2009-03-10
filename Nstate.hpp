@@ -13,15 +13,16 @@
 // See http://hostilefork.com/nstate for documentation.
 //
 
-#ifndef __NSTATE_HPP__
-#define __NSTATE_HPP__
+#pragma once
+#ifndef NSTATE_HPP
+#define NSTATE_HPP
 
 #include "NocycleSettings.hpp"
 
 #include <vector>
 #include <map>
 #include <exception>
-#include <math.h>
+#include <cmath>
 
 //
 // NSTATE

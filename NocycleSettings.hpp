@@ -15,8 +15,9 @@
 //  See http://hostilefork.com/nocycle for documentation.
 //
 
-#ifndef __NOCYCLESETTINGS_HPP__
-#define __NOCYCLESETTINGS_HPP__
+#pragma once
+#ifndef NOCYCLESETTINGS_HPP
+#define NOCYCLESETTINGS_HPP
 
 // Note: Regarding the debate of whether to use #define/#undef and #ifdef or 
 // to use #define 0/1 and #if, I'm in the latter camp.  For rationale:

@@ -15,8 +15,9 @@
 //  See http://hostilefork.com/nocycle for documentation.
 //
 
-#ifndef __ORIENTEDGRAPH_HPP__
-#define __ORIENTEDGRAPH_HPP__
+#pragma once
+#ifndef ORIENTEDGRAPH_HPP
+#define ORIENTEDGRAPH_HPP
 
 #include "NocycleSettings.hpp"
 
@@ -51,7 +52,7 @@ public:
 	};
 	
 private:
-	nstate::NstateArray<3> m_buffer;
+	NstateArray<3> m_buffer;
 
 private:
 	// E(N) => N*(N-1)/2

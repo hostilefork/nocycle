@@ -14,8 +14,9 @@
 //  See http://hostilefork.com/nocycle for documentation.
 //
 
-#ifndef __RANDOMEDGEPICKER_HPP__
-#define __RANDOMEDGEPICKER_HPP__
+#pragma once
+#ifndef RANDOMEDGEPICKER_HPP
+#define RANDOMEDGEPICKER_HPP
 
 #include "NocycleSettings.hpp"
 

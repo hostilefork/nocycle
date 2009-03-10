@@ -13,8 +13,9 @@
 //  See http://hostilefork.com/nocycle for documentation.
 //
 
-#ifndef __DIRECTEDACYCLICGRAPH_HPP__
-#define __DIRECTEDACYCLICGRAPH_HPP__
+#pragma once
+#ifndef DIRECTEDACYCLICGRAPH_HPP
+#define DIRECTEDACYCLICGRAPH_HPP
 
 #include "NocycleSettings.hpp"
 

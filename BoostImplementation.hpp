@@ -14,8 +14,9 @@
 //  See http://hostilefork.com/nocycle for documentation.
 //
 
-#ifndef __BOOSTIMPLEMENTATION_HPP__
-#define __BOOSTIMPLEMENTATION_HPP__
+#pragma once
+#ifndef BOOSTIMPLEMENTATION_HPP
+#define BOOSTIMPLEMENTATION_HPP
 
 #include <utility> // boost makes heavy use of "std::pair"
 #include "boost/graph/graph_traits.hpp"
