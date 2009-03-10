@@ -74,7 +74,7 @@ public:
 	static bool SelfTest(); // Class is self-testing for regression
 };
 
-}
+} // end namespace nstate
 
 
 //
