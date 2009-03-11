@@ -52,7 +52,7 @@
 #endif
 
 // Experimental attempt to cache transitive closure, not for general use
-#define DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY 1
+#define DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY 0
 
 // If caching the transitive closure...
 // There is an "extra tristate" we get in the canreach graph when there is a physical
