@@ -26,7 +26,7 @@
 // Several pieces of Nocycle have self testing code.  These tests may rely
 // on the boost library.  If you would like to build a version of Nocycle
 // without a dependency on boost, make sure all these are set to 0.
-#define NSTATE_SELFTEST 0
+#define NSTATE_SELFTEST 1
 #define ORIENTEDGRAPH_SELFTEST 1
 #define DIRECTEDACYCLICGRAPH_SELFTEST 1
 
@@ -38,13 +38,13 @@
 // a vertex property map to track existence, the property map adds overhead
 // and may not fairly represent boost's performance in scenarios with
 // large numbers of nodes when existence tracking is not needed.
-#define BOOSTIMPLEMENTATION_TRACK_EXISTENCE 0
+#define BOOSTIMPLEMENTATION_TRACK_EXISTENCE 1
 
 // Asserts are known to slow down the debug build.  But sometimes, you
 // want to have the debug information available while still not having
 // assertions run...e.g. so you can pause to see where execution is
 // getting held up (a kind of poor-man's profiling).
-#define DEACTIVATE_ASSERT 1
+#define DEACTIVATE_ASSERT 0
 #if DEACTIVATE_ASSERT
 #define nocycle_assert(expr) ((void)0)
 #else
@@ -52,18 +52,48 @@
 #endif
 
 // Experimental attempt to cache transitive closure, not for general use
-#define DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY 0
+#define DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY 1
 
 // If caching the transitive closure...
 // There is an "extra tristate" we get in the canreach graph when there is a physical
 // edge in the data graph.  We can use this to accelerate the invalidation process,
 // but for testing purposes it's nice to make sure the algorithms aren't corrupting
 // this implicitly when modifying other edges.
-#define DIRECTEDACYCLICGRAPH_USER_TRISTATE 1
+#define DIRECTEDACYCLICGRAPH_USER_TRISTATE 0
+
+// If caching the transitive closure...
+// ...and the extra tristate per edge is NOT visible to the user...
+// Then use it to cache whether a vertex can be reached even after the physical link
+// to it is removed from the graph.
+#define DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK 1
 
 // If caching the transitive closure...
 // If 1, then perform heavy consistency checks on the transitive closure sidestructure
 // If 0, don't do the checks.
 #define DIRECTEDACYCLICGRAPH_CONSISTENCY_CHECK 0
+
+
+
+//
+// STATIC ASSERTS
+// These check to make sure you didn't specify incompatible options
+// http://www.devx.com/tips/Tip/14448
+//
+
+#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
+#	if DIRECTEDACYCLICGRAPH_USER_TRISTATE && DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
+#		error Can't use DIRECTEDACYCLICGRAPH_USER_TRISTATE and DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK together
+#	endif
+#else
+#	if DIRECTEDACYCLICGRAPH_USER_TRISTATE
+#		error Can't use DIRECTEDACYCLICGRAPH_USER_TRISTATE without DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
+#	endif
+#	if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
+#		error Can't use DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK without DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
+#	endif
+#	if DIRECTEDACYCLICGRAPH_CONSISTENCY_CHECK
+#		error Can't use DIRECTEDACYCLICGRAPH_CONSISTENCY_CHECK 
+#	endif
+#endif
 
 #endif

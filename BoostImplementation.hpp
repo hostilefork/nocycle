@@ -116,6 +116,12 @@ public:
 		BoostVertex bv = boost::vertex(vertex, *this);
 		nocycle_assert((*this)[bv].exists);
 		(*this)[bv].exists = false;
+		
+		// 1. remove_vertex is not implemented in boost::adjacency_matrix
+		// 2. on all graph types, remove_vertex invalidates any vertex descriptors you
+		//    might have outstanding... and your vertex_index property map will
+		//    be renumbered...
+		
 		boost::clear_vertex(bv, (*this)); // only removes incoming and outgoing edges
 #else
 		nocycle_assert(false);
@@ -497,7 +503,7 @@ public:
 		if (static_cast<const BoostOrientedGraph&>(*this) != static_cast<const OrientedGraph&>(dag))
 			return false;
 	
-#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY && DIRECTEDACYCLICGRAPH_USER_TRISTATE
+#if DIRECTEDACYCLICGRAPH_USER_TRISTATE
 		// additional checking - the tristates on the edges must match
 		for (OrientedGraph::VertexID vertexCheck = 0; vertexCheck < dag.GetFirstInvalidVertexID(); vertexCheck++) {
 			if (!VertexExists(vertexCheck))

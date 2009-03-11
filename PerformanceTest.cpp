@@ -27,10 +27,17 @@
 
 #include "boost/date_time/posix_time/posix_time.hpp" 
 
+#define USE_BOOST 0
 #define REGRESSION_TESTS 1
-const unsigned NUM_TEST_NODES = 65536 + 1024 /*16384*/ /*12288*/;
-const unsigned NUM_TEST_ITERATIONS = NUM_TEST_NODES*4;
+const unsigned NUM_TEST_NODES = 65536 + 1024 /*16384*/ /* 12288 */;
+const unsigned NUM_TEST_ITERATIONS = NUM_TEST_NODES*2;
 const float REMOVE_PROBABILITY = 0.0/8.0; // zero for now
+
+#if USE_BOOST
+typedef nocycle::RandomEdgePicker<nocycle::BoostDirectedAcyclicGraph> DAGType;
+#else
+typedef nocycle::RandomEdgePicker<nocycle::DirectedAcyclicGraph> DAGType;
+#endif
 
 int main (int argc, char * const argv[]) {
 
@@ -38,13 +45,13 @@ int main (int argc, char * const argv[]) {
 	boost::posix_time::time_duration removeTime = boost::posix_time::seconds(0);
 
 #if REGRESSION_TESTS && NSTATE_SELFTEST
-	if (nstate::Nstate<3>::SelfTest()) {
+	if (nocycle::Nstate<3>::SelfTest()) {
 		std::cout << "SUCCESS: All Nstate SelfTest() passed regression." << std::endl;
 	} else {
 		return 1;
 	}
 	
-	if (nstate::NstateArray<3>::SelfTest()) {
+	if (nocycle::NstateArray<3>::SelfTest()) {
 		std::cout << "SUCCESS: All NstateArray SelfTest() passed regression." << std::endl;
 	} else {
 		return 1;
@@ -71,7 +78,6 @@ int main (int argc, char * const argv[]) {
 	unsigned numInsertions = 0;
 	unsigned numDeletions = 0;
 	
-	typedef nocycle::RandomEdgePicker<nocycle::DirectedAcyclicGraph> DAGType;
 	DAGType dag (NUM_TEST_NODES);
 	
 	for (DAGType::VertexID vertex = 0; vertex < NUM_TEST_NODES; vertex++) {
@@ -85,7 +91,7 @@ int main (int argc, char * const argv[]) {
 		DAGType::VertexID vertexSource;
 		DAGType::VertexID vertexDest;
 		
-		bool removeEdge = (dag.NumEdges() > 0) && ((rand() % 10000) <= (REMOVE_PROBABILITY * 10000));
+		bool removeEdge = (dag.NumEdges() > 0) && ((rand() % 10000) < (REMOVE_PROBABILITY * 10000));
 		
 		if (removeEdge) {
 		

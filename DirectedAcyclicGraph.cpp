@@ -22,7 +22,7 @@
 #include "RandomEdgePicker.hpp"
 
 const unsigned NUM_TEST_NODES = 128;
-const float REMOVE_PROBABILITY = 0.0/8.0; // zero for now
+const float REMOVE_PROBABILITY = 1.0/8.0; // one in eight
 
 namespace nocycle {
 
@@ -158,7 +158,7 @@ bool DirectedAcyclicGraph::SelfTest() {
 			DAGType::VertexID vertexSource;
 			DAGType::VertexID vertexDest;
 			
-			bool removeEdge = (dag.NumEdges() > 0) && ((rand() % 10000) <= (REMOVE_PROBABILITY * 10000));
+			bool removeEdge = (dag.NumEdges() > 0) && ((rand() % 10000) < (REMOVE_PROBABILITY * 10000));
 			
 			if (removeEdge) {
 				dag.GetRandomEdge(vertexSource, vertexDest);
@@ -187,7 +187,7 @@ bool DirectedAcyclicGraph::SelfTest() {
 				bool causedCycle = false;
 				try {
 					dag.AddEdge(vertexSource, vertexDest);
-#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY && DIRECTEDACYCLICGRAPH_USER_TRISTATE
+#if DIRECTEDACYCLICGRAPH_USER_TRISTATE
 					dag.SetTristateForConnection(vertexSource, vertexDest, randomTristate);
 #endif
 				} catch (bad_cycle& e) {

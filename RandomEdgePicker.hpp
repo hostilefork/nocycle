@@ -111,6 +111,17 @@ public:
 	// just used for testing.
 	void GetRandomEdge(VertexID& fromVertex, VertexID& toVertex) const {
 		nocycle_assert(m_numEdges > 0);
+		if (0) { // test code, useful if you suspect the sets aren't accurate
+			unsigned numEdgesCheck = 0;
+			typename std::map<size_t, std::set<VertexID> >::const_iterator verticesByOutgoingEdgeCountCheckIter = 
+				m_verticesByOutgoingEdgeCount.begin();
+
+			while (verticesByOutgoingEdgeCountCheckIter != m_verticesByOutgoingEdgeCount.end()) {
+				numEdgesCheck += (*verticesByOutgoingEdgeCountCheckIter).first * (*verticesByOutgoingEdgeCountCheckIter).second.size();
+				verticesByOutgoingEdgeCountCheckIter++;
+			}
+			nocycle_assert(numEdgesCheck == m_numEdges);
+		}
 		
 		unsigned edgeIndexToRemove = rand() % m_numEdges;
 		unsigned edgeIndex = edgeIndexToRemove;
@@ -120,10 +131,12 @@ public:
 		unsigned numOutgoing = (*verticesByOutgoingEdgeCountIter).first;
 		unsigned numEdgesWithThisOutgoingCount = (*verticesByOutgoingEdgeCountIter).second.size(); 
 			
-		while (edgeIndex > numOutgoing * numEdgesWithThisOutgoingCount) {
+		while (edgeIndex >= numOutgoing * numEdgesWithThisOutgoingCount) {
 			// the edge "index" we are looking for wouldn't be in the current set
 			edgeIndex -= numOutgoing * numEdgesWithThisOutgoingCount;
 			verticesByOutgoingEdgeCountIter++;
+			numOutgoing = (*verticesByOutgoingEdgeCountIter).first;
+			numEdgesWithThisOutgoingCount = (*verticesByOutgoingEdgeCountIter).second.size();
 			nocycle_assert(verticesByOutgoingEdgeCountIter != m_verticesByOutgoingEdgeCount.end()); 
 			}
 

@@ -87,22 +87,26 @@ public:
 	virtual ~DirectedAcyclicGraph() {
 	}
 
-	// Special features of our DAG sidestructure
+	// Special features of our DAG's sidestructure
 #if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
 	// If a physical connection exists between fromVertex and toVertex, we can use its
 	// reachability data for other purposes...effectively, a tristate!
 	// public for testing, but will probably go private
-#if !DIRECTEDACYCLICGRAPH_USER_TRISTATE
+#if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
 private:
 	enum ExtraTristate {
 		isReachableWithoutEdge = 0,
 		notReachableWithoutEdge = 1,
 		thirdStateNotSureWhatToDoWithIt = 2
 	};
-#else
+#endif
+
+#if DIRECTEDACYCLICGRAPH_USER_TRISTATE
 public:
-#endif	
-	nstate::Nstate<3> GetTristateForConnection(VertexID fromVertex, VertexID toVertex) const {
+#else
+private:
+#endif
+	Nstate<3> GetTristateForConnection(VertexID fromVertex, VertexID toVertex) const {
 		nocycle_assert(EdgeExists(fromVertex, toVertex));
 
 		bool forwardEdge, reverseEdge;
@@ -118,7 +122,7 @@ public:
 			
 		return 0;
 	}
-	void SetTristateForConnection(VertexID fromVertex, VertexID toVertex, nstate::Nstate<3> tristate) {
+	void SetTristateForConnection(VertexID fromVertex, VertexID toVertex, Nstate<3> tristate) {
 		nocycle_assert(EdgeExists(fromVertex, toVertex));
 		
 		bool forwardEdge, reverseEdge;
@@ -265,7 +269,7 @@ private:
 			}
 		}
 		
-#if !DIRECTEDACYCLICGRAPH_USER_TRISTATE
+#if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
 		std::map<VertexID, std::set<VertexID> >::iterator fooIter = foo.begin();
 		while (fooIter != foo.end()) {
 			VertexID fooVertex = (*fooIter).first;
@@ -486,7 +490,7 @@ public:
 	}
 	
 	bool SetEdge(VertexID fromVertex, VertexID toVertex) {
-#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY && DIRECTEDACYCLICGRAPH_CONSISTENCY_CHECK
+#if DIRECTEDACYCLICGRAPH_CONSISTENCY_CHECK
 		ConsistencyCheck cc (*this);
 #endif
 		
@@ -495,7 +499,7 @@ public:
 			throw bc;
 		}
 
-#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY && !DIRECTEDACYCLICGRAPH_USER_TRISTATE
+#if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
 		// this may have false positives, for the moment let's union the "false positive tristate"
 		// with the rest of the "false positive" reachability data...
 		bool reachablePriorToEdge = m_canreach.EdgeExists(fromVertex, toVertex);
@@ -506,7 +510,7 @@ public:
 		if (!edgeIsNew)
 			return false;
 
-#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY && !DIRECTEDACYCLICGRAPH_USER_TRISTATE		
+#if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK		
 		// save whether the toVertex was reachable prior to the physical connection in the
 		// extra tristate for this edge
 		if (reachablePriorToEdge) {
@@ -541,7 +545,7 @@ public:
 
 			VertexID canreachFromVertex = (*iterCanreachFrom++);
 
-#if !DIRECTEDACYCLICGRAPH_USER_TRISTATE
+#if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
 			// These new reachabilities may lead us to need to bump a physical connection on
 			// vertices that can reach fromVertex regarding how it can reach a vertex that toVertex canreach.
 			// This would be from notReachableWithoutEdge to isReachableWithoutEdge.  Basically,
@@ -615,11 +619,11 @@ public:
 	}
 	
 	bool ClearEdge(VertexID fromVertex, VertexID toVertex) {
-#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY && DIRECTEDACYCLICGRAPH_CONSISTENCY_CHECK
+#if DIRECTEDACYCLICGRAPH_CONSISTENCY_CHECK
 		ConsistencyCheck cc (*this);
 #endif
 
-#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY && !DIRECTEDACYCLICGRAPH_USER_TRISTATE
+#if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
 		if (!EdgeExists(fromVertex, toVertex))
 			return false;
 
@@ -759,7 +763,7 @@ public:
 					}
 					nocycle_assert(outgoingReach.size() == outgoingTransitiveClosure.size());
 					
-#if !DIRECTEDACYCLICGRAPH_USER_TRISTATE
+#if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
 					std::set<VertexID>::iterator outgoingIter = outgoing.begin();
 					while (outgoingIter != outgoing.end()) {
 						VertexID outgoingVertex = (*outgoingIter++);
