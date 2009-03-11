@@ -28,7 +28,7 @@
 #include "boost/date_time/posix_time/posix_time.hpp" 
 
 #define REGRESSION_TESTS 1
-const unsigned NUM_TEST_NODES = /*16384*/ 12288;
+const unsigned NUM_TEST_NODES = 65536 + 1024 /*16384*/ /*12288*/;
 const unsigned NUM_TEST_ITERATIONS = NUM_TEST_NODES*4;
 const float REMOVE_PROBABILITY = 0.0/8.0; // zero for now
 
@@ -71,7 +71,7 @@ int main (int argc, char * const argv[]) {
 	unsigned numInsertions = 0;
 	unsigned numDeletions = 0;
 	
-	typedef nocycle::RandomEdgePicker<nocycle::BoostDirectedAcyclicGraph> DAGType;
+	typedef nocycle::RandomEdgePicker<nocycle::DirectedAcyclicGraph> DAGType;
 	DAGType dag (NUM_TEST_NODES);
 	
 	for (DAGType::VertexID vertex = 0; vertex < NUM_TEST_NODES; vertex++) {

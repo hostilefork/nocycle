@@ -21,7 +21,7 @@
 // GCC limitation, Static data member templates are not supported.
 // http://www.cs.utah.edu/dept/old/texinfo/gcc/gppFAQ.html#SEC32
 
-namespace nstate {
+namespace nocycle {
 
 // due to complications with static members of templates, using a single external variable
 // and a map works on more compilers

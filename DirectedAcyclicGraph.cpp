@@ -17,10 +17,11 @@
 
 #if DIRECTEDACYCLICGRAPH_SELFTEST
 
+#include <iostream>
 #include "BoostImplementation.hpp"
 #include "RandomEdgePicker.hpp"
 
-#define NUM_TEST_NODES 128
+const unsigned NUM_TEST_NODES = 128;
 const float REMOVE_PROBABILITY = 0.0/8.0; // zero for now
 
 namespace nocycle {
@@ -170,7 +171,7 @@ bool DirectedAcyclicGraph::SelfTest() {
 				dag.GetRandomNonEdge(vertexSource, vertexDest);
 
 #if DIRECTEDACYCLICGRAPH_USER_TRISTATE
-				nstate::Nstate<3> randomTristate (rand() % 3);
+				Nstate<3> randomTristate (rand() % 3);
 #endif
 
 				bool causedCycleInBoost = false;
@@ -186,7 +187,7 @@ bool DirectedAcyclicGraph::SelfTest() {
 				bool causedCycle = false;
 				try {
 					dag.AddEdge(vertexSource, vertexDest);
-#if DIRECTEDACYCLICGRAPH_USER_TRISTATE
+#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY && DIRECTEDACYCLICGRAPH_USER_TRISTATE
 					dag.SetTristateForConnection(vertexSource, vertexDest, randomTristate);
 #endif
 				} catch (bad_cycle& e) {

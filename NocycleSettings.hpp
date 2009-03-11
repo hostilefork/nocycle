@@ -26,7 +26,7 @@
 // Several pieces of Nocycle have self testing code.  These tests may rely
 // on the boost library.  If you would like to build a version of Nocycle
 // without a dependency on boost, make sure all these are set to 0.
-#define NSTATE_SELFTEST 1
+#define NSTATE_SELFTEST 0
 #define ORIENTEDGRAPH_SELFTEST 1
 #define DIRECTEDACYCLICGRAPH_SELFTEST 1
 
@@ -51,12 +51,17 @@
 #define nocycle_assert(expr) assert(expr)
 #endif
 
+// Experimental attempt to cache transitive closure, not for general use
+#define DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY 0
+
+// If caching the transitive closure...
 // There is an "extra tristate" we get in the canreach graph when there is a physical
 // edge in the data graph.  We can use this to accelerate the invalidation process,
 // but for testing purposes it's nice to make sure the algorithms aren't corrupting
 // this implicitly when modifying other edges.
 #define DIRECTEDACYCLICGRAPH_USER_TRISTATE 1
 
+// If caching the transitive closure...
 // If 1, then perform heavy consistency checks on the transitive closure sidestructure
 // If 0, don't do the checks.
 #define DIRECTEDACYCLICGRAPH_CONSISTENCY_CHECK 0

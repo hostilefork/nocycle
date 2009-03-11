@@ -28,7 +28,7 @@
 // NSTATE
 //
 
-namespace nstate {
+namespace nocycle {
 
 // see: http://www.cplusplus.com/doc/tutorial/exceptions.html
 class bad_nstate : public std::exception {
@@ -70,8 +70,10 @@ public:
 public:
 	virtual ~Nstate() { }
 
+#if NSTATE_SELFTEST
 public:
 	static bool SelfTest(); // Class is self-testing for regression
+#endif
 };
 
 
@@ -82,8 +84,8 @@ public:
 // Due to complications with static members of templates, I am using a single 
 // external variable of a map for the power tables that each template
 // instantiation needs.  This works on more compilers.  However, because 
-// this lookup is slow, I've optimized it for Tristates until a better solution
-// can be found.
+// this lookup is slow, I copy from this table to a local dynamic C++ array
+// in each vector until a better approach can be found.
 extern std::map<unsigned, std::vector<unsigned> > nstatePowerTables;
 
 // TODO:
@@ -231,9 +233,11 @@ public:
 	virtual ~NstateArray<radix>() {
 		delete[] m_cachedPowerTable;
 	}
-	
+
+#if NSTATE_SELFTEST
 public:
 	static bool SelfTest(); // Class is self-testing for regression
+#endif
 };
 
 
@@ -246,16 +250,8 @@ template<int radix> std::vector<unsigned> NstateArray<radix>::power_table;
 template<int radix> unsigned NstateArray<radix>::NSTATES_IN_UNSIGNED = 0; 
 */
 
-
-
 //
-// CODE FOR SELF-TESTS
-//
-// See: http://gcc.gnu.org/ml/gcc-bugs/2000-12/msg00168.html
-// "If the definitions of member functions of a template aren't visible
-// when the template is instantiated, they won't be instantiated.  You
-// must define template member functions in the header file itself, at
-// least until the `export' keyword is implemented."
+// Static member functions
 //
 
 template <int radix>
@@ -298,8 +294,10 @@ typename NstateArray<radix>::PackedType NstateArray<radix>::SetDigitInPackedValu
 	return upperPart + setPart + lowerPart;
 }
 
-} // temporary end of namespace nstate
+} // temporary end of namespace nocycle
 
+
+#if NSTATE_SELFTEST
 
 //
 // CODE FOR SELF-TESTS
@@ -314,7 +312,7 @@ typename NstateArray<radix>::PackedType NstateArray<radix>::SetDigitInPackedValu
 #include <cstdlib>
 #include <iostream>
 
-namespace nstate {
+namespace nocycle {
 
 template <int radix>
 bool Nstate<radix>::SelfTest() {
@@ -405,6 +403,8 @@ bool NstateArray<radix>::SelfTest() {
 	return true;
 }
 
-} // end namespace nstate
+} // end namespace nocycle
+
+#endif
 
 #endif

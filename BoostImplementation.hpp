@@ -36,7 +36,7 @@ struct BoostVertexProperties {
 
 struct BoostEdgeProperties {
 #if DIRECTEDACYCLICGRAPH_USER_TRISTATE
-	nstate::Nstate<3> tristate;
+	Nstate<3> tristate;
 #endif
 };
 
@@ -181,7 +181,7 @@ public:
 #if DIRECTEDACYCLICGRAPH_USER_TRISTATE
 // For testing the tristate storage...
 public: 
-	nstate::Nstate<3> GetTristateForConnection(VertexID fromVertex, VertexID toVertex) const {
+	Nstate<3> GetTristateForConnection(VertexID fromVertex, VertexID toVertex) const {
 		BoostVertex bvSource = boost::vertex(fromVertex, (*this));
 		BoostVertex bvDest = boost::vertex(toVertex, (*this));
 		
@@ -193,7 +193,7 @@ public:
 		
 		return (*this)[be].tristate;
 	}
-	void SetTristateForConnection(VertexID fromVertex, VertexID toVertex, nstate::Nstate<3> tristate) {
+	void SetTristateForConnection(VertexID fromVertex, VertexID toVertex, Nstate<3> tristate) {
 		BoostVertex bvSource = boost::vertex(fromVertex, (*this));
 		BoostVertex bvDest = boost::vertex(toVertex, (*this));
 		
@@ -365,8 +365,8 @@ public:
 
 	
 private:
-// this method from:
-// http://www.boost.org/doc/libs/1_38_0/libs/graph/doc/file_dependency_example.html
+	// this method hooks the DFS "back_edge", taken from:
+	// http://www.boost.org/doc/libs/1_38_0/libs/graph/doc/file_dependency_example.html
 	struct cycle_detector : public boost::dfs_visitor<>
 	{
 		cycle_detector(bool& has_cycle) 
@@ -378,47 +378,116 @@ private:
 		void back_edge(BoostEdge, BoostBaseGraph&) {
 			_has_cycle = true;
 		}
+		
 	protected:
 		bool& _has_cycle;
+	};
+
+private:
+
+	// this method hooks the DFS "on_discover_vertex", adapted from listing 1:
+	// http://www.ddj.com/cpp/184401546
+	struct reachability_detector : public boost::base_visitor<reachability_detector> {
+		typedef boost::on_discover_vertex event_filter;
+		reachability_detector (BoostVertex test_vertex, bool& is_reachable) : 
+			_test_vertex (test_vertex),
+			_is_reachable (is_reachable) 
+		{
+		}
+		template <class BoostVertex, class BoostBaseGraph>
+		void operator()(BoostVertex vertex, BoostBaseGraph& graph) 
+		{
+			// boost algorithms have no termination condition other than finishing the visitation
+			// the only way out is to throw an exception
+			// "Note that, like with other BGL search algorithms, our A* implementation
+			//  has no termination condition other than that it has visited every vertex in the
+			//  same connected component as the start vertex. A custom visitor can cause the
+			//  algorithm to terminate by throwing an exception"
+			// http://www.cs.rpi.edu/~beevek/research/astar_bgl04.pdf
+			if (vertex == _test_vertex) {
+				_is_reachable = true;
+			}
+		}
+		protected:
+			BoostVertex _test_vertex;
+			bool& _is_reachable;
 	};
 
 public:
 	bool SetEdge(VertexID fromVertex, VertexID toVertex) {
 		
-		bool newEdge = BoostOrientedGraph::SetEdge(fromVertex, toVertex);
-		if (!newEdge)
-			return false;
-
-		bool has_cycle = false;
-		cycle_detector vis (has_cycle);
-		
 		BoostVertexColorMap colorMap = boost::get(boost::vertex_color, (*this));
 		
-		// depth_first_visit is not documented well, and BGL is fairly abstruse if you get beyond the samples
-		// but thanks to this message by Vladimir Prus I was able to figure out the magic to use it:
-		// http://aspn.activestate.com/ASPN/Mail/Message/boost/2204027
-		
-		// see also: http://lists.boost.org/Archives/boost/2000/10/5573.php
-		// http://www.boost.org/doc/libs/1_38_0/libs/graph/doc/depth_first_visit.html
-		// http://archives.free.net.ph/message/20080228.115853.14aa712c.el.html
-		
-		std::vector<boost::default_color_type> colors(num_vertices((*this)));
 		if (0) {
-			// Searches entire graph for cycles
-			boost::depth_first_search((*this), boost::visitor(vis)); 
+			
+			// First way I found on the web was a cycle detector
+			// to see if an insertion would cause a cycle, perform it and then see if cycle
+			// If so, remove the link, otherwise success
+		
+			bool newEdge = BoostOrientedGraph::SetEdge(fromVertex, toVertex);
+			if (!newEdge)
+				return false;
+				
+			bool has_cycle = false;
+			cycle_detector vis (has_cycle);
+
+			if (0) {
+				// Searches entire graph for cycles
+				boost::depth_first_search((*this), boost::visitor(vis)); 
+			} else {
+				// First improvement: searches only region connected to fromVertex for cycles
+				// see also: http://lists.boost.org/Archives/boost/2000/10/5573.php
+				// http://www.boost.org/doc/libs/1_38_0/libs/graph/doc/depth_first_visit.html
+				// http://archives.free.net.ph/message/20080228.115853.14aa712c.el.html
+		
+				// depth_first_visit is not documented well, and BGL is fairly abstruse if you get beyond the samples
+				// but thanks to this message by Vladimir Prus I was able to figure out the magic to use it:
+				// http://aspn.activestate.com/ASPN/Mail/Message/boost/2204027
+				std::vector<boost::default_color_type> colors(num_vertices((*this)));
+					
+				boost::depth_first_visit((*this), boost::vertex(fromVertex, (*this)), vis, 
+					boost::make_iterator_property_map(&colors[0], boost::get(boost::vertex_index, (*this))));
+			}
+			
+			if (has_cycle) {
+				BoostOrientedGraph::RemoveEdge(fromVertex, toVertex);
+			
+				bad_cycle bc;
+				throw bc;
+			}
+
+			return true;
+			
 		} else {
-			// Searches only region connected to fromVertex for cycles
-			boost::depth_first_visit((*this), boost::vertex(fromVertex, (*this)), vis, 
+		
+			// Second improvement: do reachability without modifying the graph
+			// Builds on depth_first_visit instead of depth_first_search
+			if (EdgeExists(fromVertex, toVertex))
+				return false;
+
+			bool is_reachable = false;
+			BoostVertex find_vertex = boost::vertex(fromVertex, (*this));
+			
+			// this line from http://www.ddj.com/cpp/184401546 -- listing 1, again.
+			boost::dfs_visitor<std::pair<reachability_detector,boost::null_visitor> > vis2 =
+				std::make_pair(reachability_detector(find_vertex, is_reachable), boost::null_visitor());
+
+			// http://aspn.activestate.com/ASPN/Mail/Message/boost/2204027
+			std::vector<boost::default_color_type> colors(num_vertices((*this)));
+
+			boost::depth_first_visit((*this), boost::vertex(toVertex, (*this)), vis2, 
 				boost::make_iterator_property_map(&colors[0], boost::get(boost::vertex_index, (*this))));
+				
+			if (is_reachable) {
+				bad_cycle bc;
+				throw bc;
+			}
+			
+			bool newEdge = BoostOrientedGraph::SetEdge(fromVertex, toVertex);
+			assert(newEdge);
+			return true;
 		}
 		
-		if (has_cycle) {
-			BoostOrientedGraph::RemoveEdge(fromVertex, toVertex);
-			
-			bad_cycle bc;
-			throw bc;
-		}
-		return true;
 	}
 	void AddEdge(VertexID fromVertex, VertexID toVertex) {
 		if (!SetEdge(fromVertex, toVertex))
@@ -428,7 +497,7 @@ public:
 		if (static_cast<const BoostOrientedGraph&>(*this) != static_cast<const OrientedGraph&>(dag))
 			return false;
 	
-#if DIRECTEDACYCLICGRAPH_USER_TRISTATE
+#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY && DIRECTEDACYCLICGRAPH_USER_TRISTATE
 		// additional checking - the tristates on the edges must match
 		for (OrientedGraph::VertexID vertexCheck = 0; vertexCheck < dag.GetFirstInvalidVertexID(); vertexCheck++) {
 			if (!VertexExists(vertexCheck))

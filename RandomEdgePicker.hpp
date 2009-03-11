@@ -22,22 +22,14 @@
 
 namespace nocycle {
 
-// This class is a template of which base class you wish to apply it to.
 // I wanted to be able to quickly remove a random edge from the graph.  Unfortunately, in
 // a dense matrix representation in which there can be many missing edges... the edges can
-// be difficult to count and index.
+// be difficult to impose an enumeration on that can be chosen from a random index.
 //
-// This adds a set on top of the graph that keeps lists of how many connections of
-// each outgoing vertex count exist.  Then with a
-// probability weighted by the number of outgoing links you pick a node from the
-// corresponding set.  e.g. a node with two outgoing links is twice as likely to
-// have one of its outgoing links picked than a node with only one.
+// This adds some tracking on top of the graph which keeps track of all the vertex IDs 
+// and how many outgoing connections they have.  Armed with this information, you can
+// pick a link at random!
 //
-// Implementing this is simply a matter of picking a random number ranging 0...numLinks,
-// and then skipping through the sets proportional to the # of links in that set.
-// So if you have 20 nodes with 1 outgoing link and 10 nodes with 2 outgoing links,
-// and you pick the number 30... you subtract 20 from 30 and then with 10 left over
-// you go to the 5th node in the 2 link collection.  
 template<class BaseClass>
 class RandomEdgePicker : public BaseClass {
 public:
@@ -92,38 +84,69 @@ public:
 	size_t NumEdges() const {
 		return m_numEdges;
 	}
+	
+	// The algorithm for picking a random edge is to start with a random number that ranges
+	// from [0..numEdges-1], and then weight the probability of picking a link from a node
+	// based on its outgoing number of connections.
+	//
+	// Imagine you have 100 nodes, and 100 edges between them:
+	//    40 nodes with 0 outgoing edges
+	//    30 nodes with 1 outgoing edge
+	//    20 nodes with 2 outgoing edges
+	//    10 nodes with 3 outgoing edges
+	//
+	// You pick a random number between [0..99].  You want to be three times as likely to 
+	// pick a node with 3 outgoing edges as you are to pick a node with 1 outgoing edges, 
+	// and twice as likely to pick a node with 2 outgoing edges as 1 outgoing.   So let's 
+	// say your random pick was 90.
+	//
+	// * Skip all the nodes with 0 outgoing edges, since they have no links to take
+	// * 90 > 30*1, so skip past the nodes with one outgoing edge and subtract 30*1 (60)
+	// * 60 > 20*2, so skip past the nodes with two outgoing edges and subtract 20*2 (20)
+	// * 20 < 10*3... so we div 20 by 3 to realize we need to pick the 6th node
+	//     with 3 outgoing edges... and mod 20 by 3 to realize we need to pick the 3rd
+	//     edge of that sixth node (index 2)
+	//
+	// Really, it makes sense.  :)  Leaving it a little messy for the moment since it's
+	// just used for testing.
 	void GetRandomEdge(VertexID& fromVertex, VertexID& toVertex) const {
 		nocycle_assert(m_numEdges > 0);
 		
-		unsigned edgeToRemove = rand() % m_numEdges;
-		unsigned edgeIndex = edgeToRemove;
-		unsigned numOutgoing = 0;
+		unsigned edgeIndexToRemove = rand() % m_numEdges;
+		unsigned edgeIndex = edgeIndexToRemove;
 		typename std::map<size_t, std::set<VertexID> >::const_iterator verticesByOutgoingEdgeCountIter = 
 			m_verticesByOutgoingEdgeCount.begin();
-		while (verticesByOutgoingEdgeCountIter != m_verticesByOutgoingEdgeCount.end()) {
-			numOutgoing = (*verticesByOutgoingEdgeCountIter).first;
-			if (edgeIndex < numOutgoing * ((*verticesByOutgoingEdgeCountIter).second.size())) {
-				typename std::set<VertexID>::const_iterator setOfVerticesIter = (*verticesByOutgoingEdgeCountIter).second.begin();
-				while (edgeIndex >= numOutgoing) {
-					edgeIndex -= numOutgoing;
-					setOfVerticesIter++;
-					nocycle_assert(setOfVerticesIter != (*verticesByOutgoingEdgeCountIter).second.end());
-				}
-				fromVertex = *setOfVerticesIter;
-				std::set<VertexID> outgoing = OutgoingEdgesForVertex(fromVertex);
-				nocycle_assert(outgoing.size() == numOutgoing);
-				typename std::set<VertexID>::const_iterator outgoingIter = outgoing.begin();
-				while (edgeIndex > 0) {
-					edgeIndex--;
-					outgoingIter++;
-					nocycle_assert(outgoingIter != outgoing.end());
-				}
-				toVertex = *outgoingIter;
-				break;
-			}
-			edgeIndex -= numOutgoing * (*verticesByOutgoingEdgeCountIter).second.size();
+
+		unsigned numOutgoing = (*verticesByOutgoingEdgeCountIter).first;
+		unsigned numEdgesWithThisOutgoingCount = (*verticesByOutgoingEdgeCountIter).second.size(); 
+			
+		while (edgeIndex > numOutgoing * numEdgesWithThisOutgoingCount) {
+			// the edge "index" we are looking for wouldn't be in the current set
+			edgeIndex -= numOutgoing * numEdgesWithThisOutgoingCount;
 			verticesByOutgoingEdgeCountIter++;
+			nocycle_assert(verticesByOutgoingEdgeCountIter != m_verticesByOutgoingEdgeCount.end()); 
+			}
+
+		typename std::set<VertexID>::const_iterator setOfVerticesIter = (*verticesByOutgoingEdgeCountIter).second.begin();
+		while (edgeIndex >= numOutgoing) {
+			edgeIndex -= numOutgoing;
+			setOfVerticesIter++;
+			nocycle_assert(setOfVerticesIter != (*verticesByOutgoingEdgeCountIter).second.end());
 		}
+			
+		fromVertex = *setOfVerticesIter;
+			
+		// Now we pick the edge from the outgoing set based on what's left of our index
+		std::set<VertexID> outgoing = OutgoingEdgesForVertex(fromVertex);
+		nocycle_assert(outgoing.size() == numOutgoing);
+		typename std::set<VertexID>::const_iterator outgoingIter = outgoing.begin();
+		while (edgeIndex > 0) {
+			edgeIndex--;
+			outgoingIter++;
+			nocycle_assert(outgoingIter != outgoing.end());
+		}
+
+		toVertex = *outgoingIter;
 				
 		nocycle_assert(verticesByOutgoingEdgeCountIter != m_verticesByOutgoingEdgeCount.end());
 		nocycle_assert(numOutgoing > 0);

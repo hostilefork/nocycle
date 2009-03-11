@@ -54,7 +54,7 @@ public:
 	};
 	
 private:
-	nstate::NstateArray<3> m_buffer;
+	NstateArray<3> m_buffer;
 
 private:
 	// E(N) => N*(N-1)/2

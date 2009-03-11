@@ -19,6 +19,7 @@
 
 #if ORIENTEDGRAPH_SELFTEST
 
+#include <iostream>
 #include "BoostImplementation.hpp"
 #include "RandomEdgePicker.hpp"
 
