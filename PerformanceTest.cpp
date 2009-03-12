@@ -27,7 +27,7 @@
 // you don't have boost
 #define REGRESSION_TESTS 0
 
-const unsigned NUM_TEST_NODES = 256 /* 65536 + 1024*/ /*16384*/ /* 12288 */;
+const unsigned NUM_TEST_NODES = 65536 + 1024 /*16384*/ /* 12288 */;
 const unsigned NUM_TEST_ITERATIONS = 10000 /* NUM_TEST_NODES*2 */;
 const float REMOVE_PROBABILITY = 1.0/8.0;
 
