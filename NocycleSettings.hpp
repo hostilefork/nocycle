@@ -26,14 +26,14 @@
 // Several pieces of Nocycle have self testing code.  These tests may rely
 // on the boost library.  If you would like to build a version of Nocycle
 // without a dependency on boost, make sure all these are set to 0.
-#define NSTATE_SELFTEST 1
-#define ORIENTEDGRAPH_SELFTEST 1
-#define DIRECTEDACYCLICGRAPH_SELFTEST 1
+#define NSTATE_SELFTEST 0
+#define ORIENTEDGRAPH_SELFTEST 0
+#define DIRECTEDACYCLICGRAPH_SELFTEST 0
 
 // Though nocycle distinguishes between vertices that have no connections
 // and those which "don't exist", boost's default assumption is that 
 // all nodes in its capacity "exist".  The only way to conceptually delete 
-// a boost vertex from its enclosing graph it is to remove all of its
+// a boost vertex from an adjacency_matrix it is to remove all of its
 // incoming and outgoing connections.  Though it is possible to inject
 // a vertex property map to track existence, the property map adds overhead
 // and may not fairly represent boost's performance in scenarios with
@@ -65,7 +65,7 @@
 // ...and the extra tristate per edge is NOT visible to the user...
 // Then use it to cache whether a vertex can be reached even after the physical link
 // to it is removed from the graph.
-#define DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK 1
+#define DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK 0
 
 // If caching the transitive closure...
 // If 1, then perform heavy consistency checks on the transitive closure sidestructure
