@@ -1,5 +1,5 @@
 //
-//  DirectedAcyclicGraph.cpp - Experimental DAG graph class with a
+//  DirectedAcyclicGraph.hpp - Experimental DAG graph class with a
 //      sidestructure of its transitive closure.  Implemented as two
 //      OrientedGraph objects, and various enhancements to the 
 //      sidestructure can be tried out.
@@ -242,7 +242,9 @@ private:
 		// (there will be no loops because it's acyclic)
 		std::set<VertexID> outgoing = OutgoingEdgesForVertex(fromVertex);
 		std::set<VertexID>::iterator outgoingIter = outgoing.begin();
-		std::map<VertexID, std::set<VertexID> > foo;
+#if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
+		std::map<VertexID, std::set<VertexID> > mapOfOutgoingReachIncludingSelf;
+#endif
 		while (outgoingIter != outgoing.end()) {
 			OrientedGraph::VertexID outgoingVertex = (*outgoingIter++);
 			
@@ -250,8 +252,10 @@ private:
 				CleanUpReachability(outgoingVertex, toVertex);
 			
 			std::set<VertexID> outgoingForOutgoing = OutgoingReachForVertexIncludingSelf(outgoingVertex);
-			foo[outgoingVertex] = outgoingForOutgoing;
 			
+#if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
+			mapOfOutgoingReachIncludingSelf[outgoingVertex] = outgoingForOutgoing;
+#endif
 			std::set<VertexID>::iterator outgoingForOutgoingIter = outgoingForOutgoing.begin();
 			while (outgoingForOutgoingIter != outgoingForOutgoing.end()) {
 				VertexID outgoingForOutgoingVertex = (*outgoingForOutgoingIter++);
@@ -270,26 +274,26 @@ private:
 		}
 		
 #if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
-		std::map<VertexID, std::set<VertexID> >::iterator fooIter = foo.begin();
-		while (fooIter != foo.end()) {
-			VertexID fooVertex = (*fooIter).first;
-			if (GetTristateForConnection(fromVertex, fooVertex) == isReachableWithoutEdge) {
+		std::map<VertexID, std::set<VertexID> >::iterator mapOfOutgoingReachIncludingSelfIter = mapOfOutgoingReachIncludingSelf.begin();
+		while (mapOfOutgoingReachIncludingSelfIter != mapOfOutgoingReachIncludingSelf.end()) {
+			VertexID linkedVertex = (*mapOfOutgoingReachIncludingSelfIter).first;
+			if (GetTristateForConnection(fromVertex, linkedVertex) == isReachableWithoutEdge) {
 				bool foundOtherPath = false;
-				std::map<VertexID, std::set<VertexID> >::iterator barIter = foo.begin();
-				while (!foundOtherPath && (barIter != foo.end())) {
-					if (fooIter != barIter) {
-						std::set<VertexID> baz = (*barIter).second;
-						if (baz.find(fooVertex) != baz.end())
+				std::map<VertexID, std::set<VertexID> >::iterator mapOfOutgoingReachIncludingSelfOtherIter = mapOfOutgoingReachIncludingSelf.begin();
+				while (!foundOtherPath && (mapOfOutgoingReachIncludingSelfOtherIter != mapOfOutgoingReachIncludingSelf.end())) {
+					if (mapOfOutgoingReachIncludingSelfIter != mapOfOutgoingReachIncludingSelfOtherIter) {
+						std::set<VertexID> outgoingOtherReachIncludingOther = (*mapOfOutgoingReachIncludingSelfOtherIter).second;
+						if (outgoingOtherReachIncludingOther.find(linkedVertex) !=outgoingOtherReachIncludingOther.end())
 							foundOtherPath = true;
 					}
-					barIter++;
+					mapOfOutgoingReachIncludingSelfOtherIter++;
 				}
 				
 				if (!foundOtherPath)
-					SetTristateForConnection(fromVertex, fooVertex, notReachableWithoutEdge);
+					SetTristateForConnection(fromVertex, linkedVertex, notReachableWithoutEdge);
 			}
 
-			fooIter++;
+			mapOfOutgoingReachIncludingSelfIter++;
 		}
 #endif 
 		
@@ -688,55 +692,40 @@ public:
 public:
 	std::set<VertexID> OutgoingTransitiveVertices(VertexID vertex, const VertexID* vertexIgnoreEdge, bool includeDirectEdges) {
 		std::set<VertexID> result;
-		std::set<VertexID> outgoing = OutgoingEdgesForVertex(vertex);
-		if (vertexIgnoreEdge != NULL) {
-			size_t numErased = outgoing.erase(*vertexIgnoreEdge);
-			nocycle_assert(numErased == 1);
-		}
-		std::set<VertexID> outgoingFromOutgoingAll;
-		std::set<VertexID>::iterator outgoingIter = outgoing.begin();
-		while (outgoingIter != outgoing.end()) {
-			VertexID outgoingVertex = (*outgoingIter++);
+		std::stack<VertexID> vertexStack;
 
-			if (true) {
-				std::set<VertexID> outgoingFromOutgoing = OutgoingEdgesForVertex(outgoingVertex);
-				std::set<VertexID>::iterator outgoingFromOutgoingIter = outgoingFromOutgoing.begin();
-				while (outgoingFromOutgoingIter != outgoingFromOutgoing.end()) {
-					VertexID outgoingFromOutgoingVertex = (*outgoingFromOutgoingIter++);
-					if ((outgoingFromOutgoingAll.find(outgoingFromOutgoingVertex) == outgoingFromOutgoingAll.end()) &&
-						(outgoing.find(outgoingFromOutgoingVertex) == outgoing.end()))
-						outgoingFromOutgoingAll.insert(outgoingFromOutgoingVertex);
-				}
+		std::set<VertexID> outgoingInit = OutgoingEdgesForVertex(vertex);
+		std::set<VertexID>::iterator outgoingInitIter = outgoingInit.begin();
+		while (outgoingInitIter != outgoingInit.end()) {
+			VertexID outgoingVertex = (*outgoingInitIter++);
+			if (!vertexIgnoreEdge || (*vertexIgnoreEdge != outgoingVertex)) {
+				vertexStack.push(outgoingVertex);
+				if (includeDirectEdges)
+					result.insert(outgoingVertex);
 			}
 		}
 		
-		result = outgoingFromOutgoingAll;
-		
-		std::set<VertexID>::iterator outgoingFromOutgoingAllIter = outgoingFromOutgoingAll.begin();
-		while (outgoingFromOutgoingAllIter != outgoingFromOutgoingAll.end()) {
-			if (true) {
-				VertexID outgoingFromOutgoingAllVertex = (*outgoingFromOutgoingAllIter++);
-				std::set<VertexID> outgoingFromOutgoingTransitive = OutgoingTransitiveVertices(outgoingFromOutgoingAllVertex, NULL, true);
-				std::set<VertexID>::iterator outgoingFromOutgoingTransitiveIter = outgoingFromOutgoingTransitive.begin();
-				while (outgoingFromOutgoingTransitiveIter != outgoingFromOutgoingTransitive.end()) {
-					VertexID outgoingFromOutgoingTransitiveVertex = (*outgoingFromOutgoingTransitiveIter++);
-					if ((outgoingFromOutgoingAll.find(outgoingFromOutgoingTransitiveVertex) == outgoingFromOutgoingAll.end()) &&
-						(outgoing.find(outgoingFromOutgoingTransitiveVertex) == outgoing.end()))
-						result.insert(outgoingFromOutgoingTransitiveVertex);
+		while (!vertexStack.empty()) {
+			VertexID vertexCurrent = vertexStack.top();
+			vertexStack.pop();
+					
+			std::set<VertexID> outgoing = OutgoingEdgesForVertex(vertexCurrent);
+			std::set<VertexID>::iterator outgoingIter = outgoing.begin();
+			while (outgoingIter != outgoing.end()) {
+				VertexID outgoingVertex = (*outgoingIter++);
+				if (result.find(outgoingVertex) == result.end()) {
+					vertexStack.push(outgoingVertex);
+					result.insert(outgoingVertex);
 				}
 			}
-		}
-		
-		if (includeDirectEdges) {
-			result.insert(outgoing.begin(), outgoing.end());
-		}
 			
+		}
+					
 		return result;
 	}
-	std::set<VertexID> OutgoingTransitiveVerticesNotDirectlyEdgeed(VertexID vertex) {
+	std::set<VertexID> OutgoingTransitiveVerticesNotDirectlyEdged(VertexID vertex) {
 		return OutgoingTransitiveVertices(vertex, NULL, false);
 	}
-
 	
 	bool IsInternallyConsistent() {
 		for (OrientedGraph::VertexID vertex = 0; vertex < GetFirstInvalidVertexID(); vertex++) {
@@ -744,7 +733,7 @@ public:
 				continue;
 				
 			std::set<VertexID> outgoingReach = OutgoingReachForVertexIncludingSelf(vertex);
-			std::set<VertexID> outgoingTransitive = OutgoingTransitiveVerticesNotDirectlyEdgeed(vertex);
+			std::set<VertexID> outgoingTransitive = OutgoingTransitiveVerticesNotDirectlyEdged(vertex);
 			std::set<VertexID> outgoingTransitiveClosure = outgoingTransitive;
 			std::set<VertexID> outgoing = OutgoingEdgesForVertex(vertex);
 			outgoingTransitiveClosure.insert(outgoing.begin(), outgoing.end());
