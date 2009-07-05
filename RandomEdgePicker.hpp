@@ -18,7 +18,9 @@
 #ifndef RANDOMEDGEPICKER_HPP
 #define RANDOMEDGEPICKER_HPP
 
-#include "NocycleSettings.hpp"
+#include "NocycleConfig.hpp"
+
+#include <cstdlib> // needed for rand()
 
 namespace nocycle {
 

@@ -19,7 +19,7 @@
 #ifndef ORIENTEDGRAPH_HPP
 #define ORIENTEDGRAPH_HPP
 
-#include "NocycleSettings.hpp"
+#include "NocycleConfig.hpp"
 
 #include <limits> // numeric_limits
 #include <set>

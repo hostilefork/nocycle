@@ -17,12 +17,15 @@
 #ifndef NSTATE_HPP
 #define NSTATE_HPP
 
-#include "NocycleSettings.hpp"
+#include "NocycleConfig.hpp"
 
 #include <vector>
 #include <map>
 #include <exception>
 #include <cmath>
+
+// REVIEW: std::numeric_limits?
+#include <climits>
 
 //
 // NSTATE

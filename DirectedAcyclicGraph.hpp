@@ -17,7 +17,7 @@
 #ifndef DIRECTEDACYCLICGRAPH_HPP
 #define DIRECTEDACYCLICGRAPH_HPP
 
-#include "NocycleSettings.hpp"
+#include "NocycleConfig.hpp"
 
 #include "OrientedGraph.hpp"
 
