@@ -122,7 +122,7 @@ link_directories (${NOCYCLE_BINARY_DIR}/nocycle)
 
 # Note: "lib" prefix is added automatically, using lowercase convention
 # (libnocycle) because that seems to be the way people do it
-add_library (nocycle Nstate.cpp OrientedGraph.cpp DirectedAcyclicGraph.cpp)
+add_library (nocycle OrientedGraph.cpp DirectedAcyclicGraph.cpp)
 
 if (TEST_AGAINST_BOOST)
 	find_package (Boost 1.34 REQUIRED)
