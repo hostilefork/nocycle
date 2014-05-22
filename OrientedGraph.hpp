@@ -24,7 +24,7 @@
 #include <limits> // numeric_limits
 #include <set>
 
-#include "Nstate.hpp"
+#include "nstate/Nstate.hpp"
 
 namespace nocycle {
 
