@@ -30,12 +30,12 @@ namespace nocycle {
 
 // The graph will grow dynamically to accomodate
 class OrientedGraph {
-public:
+  public:
     typedef unsigned VertexID;
     class EdgeIter;
     friend class EdgeIter;
 
-private:
+  private:
     enum VertexExistenceTristate {
         doesNotExist = 0,
         existsAsTypeOne = 1,
@@ -47,16 +47,16 @@ private:
         highPointsToLow = 2
     };
 
-public:
+  public:
     enum VertexType {
         vertexTypeOne,
         vertexTypeTwo
     };
 
-private:
+  private:
     NstateArray<3> m_buffer;
 
-private:
+  private:
     // E(N) => N*(N-1)/2
     // Explained at http://hostilefork.com/nocycle/
     inline size_t TristateIndexForExistence(VertexID vertexE) const {
@@ -99,7 +99,7 @@ private:
         return !IsExistenceTristateIndex(pos);
     }
 
-public:
+  public:
     // We could cache this, but it can be computed from
     // the NstateArray length.
     //
@@ -152,11 +152,18 @@ public:
     }
 
     // This core routine is used to get vertex information, and it can also delete vertices and their connections while doing so
-private:
-    void GetVertexInfoMaybeDestroy(VertexID vertexE, bool &exists, VertexType& vertexType,
-            unsigned* incomingEdgeCount = NULL, unsigned* outgoingEdgeCount = NULL,
-            std::set<VertexID>* incomingEdges = NULL, std::set<VertexID>* outgoingEdges = NULL,
-            bool destroyIfExists = false, bool compactIfDestroy = true) {
+  private:
+    void GetVertexInfoMaybeDestroy(
+        VertexID vertexE,
+        bool &exists,
+        VertexType& vertexType,
+        unsigned* incomingEdgeCount = NULL,
+        unsigned* outgoingEdgeCount = NULL,
+        std::set<VertexID>* incomingEdges = NULL,
+        std::set<VertexID>* outgoingEdges = NULL,
+        bool destroyIfExists = false,
+        bool compactIfDestroy = true
+    ){
         switch (m_buffer[TristateIndexForExistence(vertexE)]) {
             case doesNotExist:
                 exists = false;
@@ -560,10 +567,10 @@ public:
     virtual ~OrientedGraph() {
     }
 
-#if ORIENTEDGRAPH_SELFTEST
-public:
+  #if ORIENTEDGRAPH_SELFTEST
+  public:
     static bool SelfTest();
-#endif
+  #endif
 };
 
 } // end namespace nocycle

@@ -42,19 +42,21 @@ typedef unsigned PackedTypeForNstate;
 
 template<int radix>
 class Nstate {
-private:
+  private:
     unsigned m_value; // ranges from [0..radix-1]
 
-private:
+  private:
     void ThrowExceptionIfBadValue() {
         if (m_value >= radix) {
             bad_nstate bt;
             throw bt;
         }
     }
-public:
+
+  public:
     // constructor is also implicit cast operator from unsigned
     // see: http://www.acm.org/crossroads/xrds3-1/ovp3-1.html
+
     Nstate(unsigned value) : m_value (value) {
         ThrowExceptionIfBadValue();
     }
@@ -66,23 +68,25 @@ public:
     operator unsigned() const {
         return m_value;
     }
+
 // "A base class destructor should be either public and virtual,
 //  or protected and nonvirtual."
 // http://www.gotw.ca/publications/mill18.htm
-public:
+
+  public:
     virtual ~Nstate() { }
 
-#if NSTATE_SELFTEST
-public:
+  #if NSTATE_SELFTEST
+  public:
     static bool SelfTest(); // Class is self-testing for regression
-#endif
+  #endif
 };
 
 
 class PowerTable {
-private:
+  private:
     std::vector<unsigned> m_table;
-public:
+  public:
     PowerTable (int radix) {
         unsigned nstatesInUnsigned = static_cast<unsigned>(floor(log(2)/log(radix)*CHAR_BIT*sizeof(unsigned)));
         PackedTypeForNstate value = 1;
@@ -97,7 +101,7 @@ public:
     inline PackedTypeForNstate PowerForDigit(unsigned digit) const {
         return m_table[digit];
     }
-public:
+  public:
     virtual ~PowerTable () { }
 };
 
@@ -113,14 +117,13 @@ public:
 //     (to work across platforms)?
 template <int radix>
 class NstateArray {
-
-private:
+  private:
     // Note: Typical library limits of the STL for vector lengths
     // are things like 1,073,741,823...
     std::vector<PackedTypeForNstate> m_buffer;
     size_t m_max;
 
-private:
+  private:
     static const PowerTable& GetPowerTableInstance() {
         // We wish to cache the PowerTable so that all NstateArray instances of the same
         // radix share the same one.  This is hard to do correctly and/or elegantly in
@@ -139,20 +142,19 @@ private:
         return GetPowerTableInstance().PowerForDigit(digit);
     }
 
-private:
+  private:
     Nstate<radix> GetDigitInPackedValue(PackedTypeForNstate packed, unsigned digit) const;
     PackedTypeForNstate SetDigitInPackedValue(PackedTypeForNstate packed, unsigned digit, Nstate<radix> t) const;
 
-public:
+  public:
     // Derived from boost's dynamic_bitset
     // http://www.boost.org/doc/libs/1_36_0/libs/dynamic_bitset/dynamic_bitset.html
     class reference;
     friend class NstateArray<radix>::reference;
-    class reference
-    {
+    class reference {
         friend class NstateArray<radix>;
 
-    private:
+      private:
         NstateArray<radix>& m_na;
         unsigned m_indexIntoBuffer;
         unsigned m_digit;
@@ -168,7 +170,7 @@ public:
             m_na.m_buffer[m_indexIntoBuffer] =
                 m_na.SetDigitInPackedValue(m_na.m_buffer[m_indexIntoBuffer], m_digit, x);
         }
-    public:
+      public:
         // An automatically generated copy constructor.
         reference& operator=(Nstate<radix> x) { do_assign(x); return *this; } // for b[i] = x
         reference& operator=(const reference& rhs) { do_assign(rhs); return *this; } // for b[i] = b[j]
@@ -240,7 +242,8 @@ public:
     }
 
 // Constructors and destructors
-public:
+
+  public:
     NstateArray<radix>(const size_t initial_size) :
         m_max (0)
     {
@@ -250,10 +253,10 @@ public:
     {
     }
 
-#if NSTATE_SELFTEST
-public:
+  #if NSTATE_SELFTEST
+  public:
     static bool SelfTest(); // Class is self-testing for regression
-#endif
+  #endif
 };
 
 

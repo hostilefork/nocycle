@@ -45,24 +45,24 @@ const float REMOVE_PROBABILITY = 1.0/8.0;
 #include <map>
 
 #if RECORD_TIME_DURATIONS
-#include "boost/date_time/posix_time/posix_time.hpp"
+    #include "boost/date_time/posix_time/posix_time.hpp"
 #endif
 
 #if USE_BOOST_GRAPH_IMPLEMENTATION
-#include "BoostImplementation.hpp"
-typedef nocycle::RandomEdgePicker<nocycle::BoostDirectedAcyclicGraph> DAGType;
+    #include "BoostImplementation.hpp"
+    typedef nocycle::RandomEdgePicker<nocycle::BoostDirectedAcyclicGraph> DAGType;
 #else
-typedef nocycle::RandomEdgePicker<nocycle::DirectedAcyclicGraph> DAGType;
+    typedef nocycle::RandomEdgePicker<nocycle::DirectedAcyclicGraph> DAGType;
 #endif
 
 int main (int argc, char * const argv[]) {
 
-#if RECORD_TIME_DURATIONS
+  #if RECORD_TIME_DURATIONS
     boost::posix_time::time_duration addTime = boost::posix_time::seconds(0);
     boost::posix_time::time_duration removeTime = boost::posix_time::seconds(0);
-#endif
+  #endif
 
-#if REGRESSION_TESTS && NSTATE_SELFTEST
+  #if REGRESSION_TESTS && NSTATE_SELFTEST
     if (nocycle::Nstate<3>::SelfTest()) {
         std::cout << "SUCCESS: All Nstate SelfTest() passed regression." << std::endl;
     } else {
@@ -74,23 +74,23 @@ int main (int argc, char * const argv[]) {
     } else {
         return 1;
     }
-#endif
+  #endif
 
-#if REGRESSION_TESTS && ORIENTEDGRAPH_SELFTEST
+  #if REGRESSION_TESTS && ORIENTEDGRAPH_SELFTEST
     if (nocycle::OrientedGraph::SelfTest()) {
         std::cout << "SUCCESS: All OrientedGraph SelfTest() passed regression." << std::endl;
     } else {
         return 1;
     }
-#endif
+  #endif
 
-#if REGRESSION_TESTS && DIRECTEDACYCLICGRAPH_SELFTEST
+  #if REGRESSION_TESTS && DIRECTEDACYCLICGRAPH_SELFTEST
     if (nocycle::DirectedAcyclicGraph::SelfTest()) {
         std::cout << "SUCCESS: All DirectedAcyclicGraph SelfTest() passed regression." << std::endl;
     } else {
         return 1;
     }
-#endif
+  #endif
 
     unsigned numCyclesCaught = 0;
     unsigned numInsertions = 0;
@@ -119,17 +119,17 @@ int main (int argc, char * const argv[]) {
             // We want to be twice as likely to pick a vertex with 2 outgoing connections as 1,
             // and three times as likely to pick a vertex with 3 outgoing connections... etc.
             // Vertices with 0 outgoing connections will not be picked!
-#if RECORD_TIME_DURATIONS
+          #if RECORD_TIME_DURATIONS
             boost::posix_time::ptime timeStart = boost::posix_time::microsec_clock::local_time();
-#endif
+          #endif
 
             dag.RemoveEdge(vertexSource, vertexDest);
 
-#if RECORD_TIME_DURATIONS
+          #if RECORD_TIME_DURATIONS
             boost::posix_time::time_duration timeDuration = (boost::posix_time::microsec_clock::local_time() - timeStart);
             removeTime += timeDuration;
             std::cout << " : " << timeDuration;
-#endif
+          #endif
 
             std::cout << std::endl;
             numDeletions++;
@@ -138,9 +138,9 @@ int main (int argc, char * const argv[]) {
             dag.GetRandomNonEdge(vertexSource, vertexDest);
             std::cout << "dag.AddEdge(" << vertexSource << ", " << vertexDest << ")";
 
-#if RECORD_TIME_DURATIONS
+          #if RECORD_TIME_DURATIONS
             boost::posix_time::ptime timeStart = boost::posix_time::microsec_clock::local_time();
-#endif
+          #endif
 
             bool causedCycle = false;
             try {
@@ -149,11 +149,12 @@ int main (int argc, char * const argv[]) {
                 causedCycle = true;
             }
 
-#if RECORD_TIME_DURATIONS
+          #if RECORD_TIME_DURATIONS
             boost::posix_time::time_duration timeDuration = (boost::posix_time::microsec_clock::local_time() - timeStart);
             addTime += timeDuration;
             std::cout << " : " << timeDuration;
-#endif
+          #endif
+
             if (causedCycle) {
                 std::cout << " ==> !!!CYCLE!!! ";
                 numCyclesCaught++;
@@ -166,10 +167,10 @@ int main (int argc, char * const argv[]) {
     }
     std::cout << "NOTE: Inserted " << numInsertions << ", Deleted " << numDeletions << ", and Caught " << numCyclesCaught << " cycles." << std::endl;
 
-#if RECORD_TIME_DURATIONS
+  #if RECORD_TIME_DURATIONS
     std::cout << "NOTE: Total AddEdge time = " << addTime << std::endl;
     std::cout << "NOTE: Total RemoveEdge time = " << removeTime << std::endl;
-#endif
+  #endif
 
     return 0;
 }

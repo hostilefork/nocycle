@@ -35,11 +35,11 @@ class RandomEdgePicker : public Base {
   public:
     typedef typename Base::VertexID VertexID;
 
-private:
+  private:
     std::map<size_t, std::set<VertexID> > m_verticesByOutgoingEdgeCount;
     unsigned m_numEdges;
 
-public:
+  public:
     // NOTE: There are variations of these functions, need to mirror them all!
     void CreateVertex(VertexID vertex) {
         m_verticesByOutgoingEdgeCount[0].insert(vertex);
@@ -80,7 +80,7 @@ public:
             nocycle_assert(false);
     }
 
-public:
+  public:
     size_t NumEdges() const {
         return m_numEdges;
     }
@@ -180,7 +180,7 @@ public:
         } while (Base::HasLinkage(fromVertex, toVertex));
     }
 
-public:
+  public:
     RandomEdgePicker (const size_t initial_size) :
         Base (initial_size),
         m_numEdges (0)

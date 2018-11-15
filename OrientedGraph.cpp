@@ -49,7 +49,7 @@ bool OrientedGraph::SelfTest() {
         }
     }
 
-#if BOOSTIMPLEMENTATION_TRACK_EXISTENCE
+  #if BOOSTIMPLEMENTATION_TRACK_EXISTENCE
     for (OGType::VertexID vertex = 0; vertex < NUM_TEST_NODES; vertex++) {
         bool shouldExist = bog.VertexExists(vertex);
         if (og.VertexExists(vertex) != shouldExist) {
@@ -58,7 +58,7 @@ bool OrientedGraph::SelfTest() {
                 return false;
         }
     }
-#endif
+  #endif
 
     // add a smattering of connections to both graphs
     for (unsigned index = 0; index < (NUM_TEST_NODES * NUM_TEST_NODES) / 4; index++) {

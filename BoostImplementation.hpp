@@ -78,34 +78,34 @@ typedef BoostGraphTraits::edge_descriptor BoostEdge;
 // Something of a kluge, we publicly inherit from BoostBaseGraph
 // As it's just a class for test, we'll let this slide
 class BoostOrientedGraph : public BoostBaseGraph  {
-public:
+  public:
     typedef OrientedGraph::VertexID VertexID;
 
-public:
+  public:
     BoostOrientedGraph (const size_t initial_size) :
         BoostBaseGraph (initial_size)
     {
-#if BOOSTIMPLEMENTATION_TRACK_EXISTENCE
+      #if BOOSTIMPLEMENTATION_TRACK_EXISTENCE
         for (VertexID vertex = 0; vertex < initial_size; vertex++) {
             // used to use boost::add_vertex, but that's not implemented
             BoostVertex bv = boost::vertex(vertex, *this);
             (*this)[bv].exists = false;
         }
-#endif
+      #endif
     }
 
-public:
+  public:
     void CreateVertex(DirectedAcyclicGraph::VertexID vertex) {
-#if BOOSTIMPLEMENTATION_TRACK_EXISTENCE
+      #if BOOSTIMPLEMENTATION_TRACK_EXISTENCE
         BoostVertex bv = boost::vertex(vertex, *this);
         nocycle_assert(!(*this)[bv].exists);
         (*this)[bv].exists = true;
-#else
+      #else
         // do nothing; CreateVertex is a noop, but DestroyVertex is illegal
-#endif
+      #endif
     }
     void DestroyVertex(DirectedAcyclicGraph::VertexID vertex) {
-#if BOOSTIMPLEMENTATION_TRACK_EXISTENCE
+      #if BOOSTIMPLEMENTATION_TRACK_EXISTENCE
         BoostVertex bv = boost::vertex(vertex, *this);
         nocycle_assert((*this)[bv].exists);
         (*this)[bv].exists = false;
@@ -116,22 +116,22 @@ public:
         //    be renumbered...
 
         boost::clear_vertex(bv, (*this)); // only removes incoming and outgoing edges
-#else
+      #else
         nocycle_assert(false);
-#endif
+      #endif
     }
     bool VertexExists(DirectedAcyclicGraph::VertexID vertex) const {
-#if BOOSTIMPLEMENTATION_TRACK_EXISTENCE
+      #if BOOSTIMPLEMENTATION_TRACK_EXISTENCE
         return (*this)[boost::vertex(vertex, (*this))].exists;
-#else
+      #else
         return true;
-#endif
+      #endif
     }
     VertexID GetFirstInvalidVertexID() const {
         return num_vertices((*this));
     }
 
-public:
+  public:
     std::set<DirectedAcyclicGraph::VertexID> OutgoingEdgesForVertex(VertexID vertex) const {
         nocycle_assert(VertexExists(vertex));
 
@@ -177,9 +177,8 @@ public:
         return incoming;
     }
 
-#if DIRECTEDACYCLICGRAPH_USER_TRISTATE
-// For testing the tristate storage...
-public:
+  #if DIRECTEDACYCLICGRAPH_USER_TRISTATE
+  public:
     Nstate<3> GetTristateForConnection(VertexID fromVertex, VertexID toVertex) const {
         BoostVertex bvSource = boost::vertex(fromVertex, (*this));
         BoostVertex bvDest = boost::vertex(toVertex, (*this));
@@ -204,9 +203,9 @@ public:
 
         (*this)[be].tristate = tristate;
     }
-#endif
+  #endif
 
-public:
+  public:
     bool HasLinkage(VertexID fromVertex, VertexID toVertex, bool* forwardLink = NULL, bool* reverseLink = NULL) const {
         BoostVertex bvSource = boost::vertex(fromVertex, (*this));
         BoostVertex bvDest = boost::vertex(toVertex, (*this));
@@ -246,9 +245,9 @@ public:
         bool edgeIsNew;
         BoostEdge be;
         tie(be, edgeIsNew) = boost::add_edge(bvSource, bvDest, (*this));
-#if DIRECTEDACYCLICGRAPH_USER_TRISTATE
+      #if DIRECTEDACYCLICGRAPH_USER_TRISTATE
         (*this)[be].tristate = 0;
-#endif
+      #endif
         return edgeIsNew;
     }
     void AddEdge(VertexID fromVertex, VertexID toVertex) {
@@ -278,7 +277,7 @@ public:
             return false;
 
         for (VertexID vertexCheck = 0; vertexCheck < og.GetFirstInvalidVertexID(); vertexCheck++) {
-#if BOOSTIMPLEMENTATION_TRACK_EXISTENCE
+          #if BOOSTIMPLEMENTATION_TRACK_EXISTENCE
             if (!this->VertexExists(vertexCheck)) {
                 if (og.VertexExists(vertexCheck))
                     return false;
@@ -288,10 +287,10 @@ public:
 
             if (!og.VertexExists(vertexCheck))
                 return false;
-#else
+          #else
             if (!og.VertexExists(vertexCheck))
                 continue;
-#endif
+          #endif
             std::set<VertexID> incomingEdges = og.IncomingEdgesForVertex(vertexCheck);
             std::set<VertexID> outgoingEdges = og.OutgoingEdgesForVertex(vertexCheck);
 
@@ -301,20 +300,18 @@ public:
             for (VertexID vertexOther = 0; vertexOther < og.GetFirstInvalidVertexID(); vertexOther++) {
                 BoostVertex bvOther = boost::vertex(vertexOther, *this);
 
-#if BOOSTIMPLEMENTATION_TRACK_EXISTENCE
+              #if BOOSTIMPLEMENTATION_TRACK_EXISTENCE
                 if (!VertexExists(vertexOther)) {
                     if(og.VertexExists(vertexOther))
                         return false;
                     continue;
                 }
-
                 if (!og.VertexExists(vertexOther))
                     return false;
-#else
-
+              #else
                 if (!og.VertexExists(vertexOther))
                     continue;
-#endif
+              #endif
 
                 if (vertexCheck != vertexOther) {
                     bool forwardEdgeInOg, reverseEdgeInOg;
@@ -353,21 +350,21 @@ public:
 // Something of a kluge, we publicly inherit from BoostOrientedGraph
 // as this is just a test class, we'll let it pass for now.
 class BoostDirectedAcyclicGraph : public BoostOrientedGraph {
-public:
+  public:
     typedef DirectedAcyclicGraph::VertexID VertexID;
 
-public:
+  public:
     BoostDirectedAcyclicGraph (const size_t initial_size = 0) :
         BoostOrientedGraph (initial_size)
     {
     }
 
 
-private:
+  private:
     // this method hooks the DFS "back_edge", taken from:
     // http://www.boost.org/doc/libs/1_38_0/libs/graph/doc/file_dependency_example.html
-    struct cycle_detector : public boost::dfs_visitor<>
-    {
+    class cycle_detector : public boost::dfs_visitor<> {
+      public:
         cycle_detector(bool& has_cycle)
             : _has_cycle(has_cycle)
         {
@@ -378,15 +375,16 @@ private:
             _has_cycle = true;
         }
 
-    protected:
+      protected:
         bool& _has_cycle;
     };
 
-private:
+  private:
 
     // this method hooks the DFS "on_discover_vertex", adapted from listing 1:
     // http://www.ddj.com/cpp/184401546
-    struct reachability_detector : public boost::base_visitor<reachability_detector> {
+    class reachability_detector : public boost::base_visitor<reachability_detector> {
+      public:
         typedef boost::on_discover_vertex event_filter;
         reachability_detector (BoostVertex test_vertex, bool& is_reachable) :
             _test_vertex (test_vertex),
@@ -407,12 +405,13 @@ private:
                 _is_reachable = true;
             }
         }
-        protected:
-            BoostVertex _test_vertex;
-            bool& _is_reachable;
+
+      protected:
+        BoostVertex _test_vertex;
+        bool& _is_reachable;
     };
 
-public:
+  public:
     bool SetEdge(VertexID fromVertex, VertexID toVertex) {
 
         if (0) {
@@ -494,7 +493,7 @@ public:
         if (static_cast<const BoostOrientedGraph&>(*this) != static_cast<const OrientedGraph&>(dag))
             return false;
 
-#if DIRECTEDACYCLICGRAPH_USER_TRISTATE
+      #if DIRECTEDACYCLICGRAPH_USER_TRISTATE
         // additional checking - the tristates on the edges must match
         for (OrientedGraph::VertexID vertexCheck = 0; vertexCheck < dag.GetFirstInvalidVertexID(); vertexCheck++) {
             if (!VertexExists(vertexCheck))
@@ -513,7 +512,7 @@ public:
                 }
             }
         }
-#endif
+      #endif
 
         return true;
     }

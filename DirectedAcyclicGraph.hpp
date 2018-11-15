@@ -45,11 +45,10 @@ class bad_cycle : public std::exception {
 // overriden methods.  As Nocycle is refined I will make decisions about this, but I
 // use public inheritance for expedience while the library is still in flux.
 class DirectedAcyclicGraph : public OrientedGraph {
-public:
+  public:
     typedef OrientedGraph::VertexID VertexID;
 
-private:
-#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
+  #if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
     // Sidestructure for fast O(1) acyclic insertion
     //
     // IF no edge A->B or A<-B is in the main data, then m_canreach is the
@@ -71,14 +70,16 @@ private:
     // the transitive closure sidestructure, so there's some experiments
     // to that effect...such as caching whether the pointed to vertex
     // would be reachable if the physical edge were removed.
+  private:
     OrientedGraph m_canreach;
-#endif
-public:
+  #endif
+
+  public:
     DirectedAcyclicGraph(const size_t initial_size) :
         OrientedGraph(initial_size)
-#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
+      #if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
         , m_canreach (initial_size)
-#endif
+      #endif
     {
     }
 
@@ -86,24 +87,24 @@ public:
     }
 
     // Special features of our DAG's sidestructure
-#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
+  #if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
     // If a physical connection exists between fromVertex and toVertex, we can use its
     // reachability data for other purposes...effectively, a tristate!
     // public for testing, but will probably go private
-#if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
-private:
-    enum ExtraTristate {
-        isReachableWithoutEdge = 0,
-        notReachableWithoutEdge = 1,
-        thirdStateNotSureWhatToDoWithIt = 2
-    };
-#endif
+    #if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
+      private:
+        enum ExtraTristate {
+            isReachableWithoutEdge = 0,
+            notReachableWithoutEdge = 1,
+            thirdStateNotSureWhatToDoWithIt = 2
+        };
+    #endif
 
-#if DIRECTEDACYCLICGRAPH_USER_TRISTATE
-public:
-#else
-private:
-#endif
+  #if DIRECTEDACYCLICGRAPH_USER_TRISTATE
+  public:
+  #else
+  private:
+  #endif
     Nstate<3> GetTristateForConnection(VertexID fromVertex, VertexID toVertex) const {
         nocycle_assert(EdgeExists(fromVertex, toVertex));
 
@@ -151,12 +152,14 @@ private:
         }
     }
 
-private:
+  private:
     // For each vertex in the canreach data, we say its reachability is either "clean"
     // or "dirty".  Current strategy is that dirty reachability has false positives but
     // no false negatives.
-#define canreachClean vertexTypeOne
-#define canreachMayHaveFalsePositives vertexTypeTwo
+
+    static const auto canreachClean = vertexTypeOne;
+    static const auto canreachMayHaveFalsePositives = vertexTypeTwo;
+
     bool ClearReachEdge(VertexID fromVertex, VertexID toVertex) {
         // don't want to damage a tristate!
         nocycle_assert(!HasLinkage(fromVertex, toVertex));
@@ -240,9 +243,9 @@ private:
         // (there will be no loops because it's acyclic)
         std::set<VertexID> outgoing = OutgoingEdgesForVertex(fromVertex);
         std::set<VertexID>::iterator outgoingIter = outgoing.begin();
-#if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
+      #if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
         std::map<VertexID, std::set<VertexID> > mapOfOutgoingReachIncludingSelf;
-#endif
+      #endif
         while (outgoingIter != outgoing.end()) {
             OrientedGraph::VertexID outgoingVertex = (*outgoingIter++);
 
@@ -251,9 +254,9 @@ private:
 
             std::set<VertexID> outgoingForOutgoing = OutgoingReachForVertexIncludingSelf(outgoingVertex);
 
-#if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
+          #if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
             mapOfOutgoingReachIncludingSelf[outgoingVertex] = outgoingForOutgoing;
-#endif
+          #endif
             std::set<VertexID>::iterator outgoingForOutgoingIter = outgoingForOutgoing.begin();
             while (outgoingForOutgoingIter != outgoingForOutgoing.end()) {
                 VertexID outgoingForOutgoingVertex = (*outgoingForOutgoingIter++);
@@ -271,7 +274,7 @@ private:
             }
         }
 
-#if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
+      #if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
         std::map<VertexID, std::set<VertexID> >::iterator mapOfOutgoingReachIncludingSelfIter = mapOfOutgoingReachIncludingSelf.begin();
         while (mapOfOutgoingReachIncludingSelfIter != mapOfOutgoingReachIncludingSelf.end()) {
             VertexID linkedVertex = (*mapOfOutgoingReachIncludingSelfIter).first;
@@ -293,14 +296,14 @@ private:
 
             mapOfOutgoingReachIncludingSelfIter++;
         }
-#endif
+      #endif
 
         m_canreach.SetVertexType(fromVertex, canreachClean);
     }
-#endif
+  #endif
 
 public:
-#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
+  #if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
     bool CanReach(VertexID fromVertex, VertexID toVertex) {
 
         // If there is a physical edge, then we are using the canreach data for other purposes
@@ -343,7 +346,7 @@ public:
         nocycle_assert(false);
         return false;
     }
-#else
+  #else
     bool CanReach(VertexID fromVertex, VertexID toVertex) {
         // Simply do a depth-first search to determine reachability
         // Using LIFO stack instead of recursion...
@@ -372,47 +375,46 @@ public:
 
         return false;
     }
-#endif
+  #endif
 
-
-public:
+  public:
     // This expands the buffer vector so that it can accommodate the existence and
     // connection data for vertexL.  Any new vertices added will not exist yet and not
     // have connection data.  Any vertices existing above this ID # will
     void SetCapacityForMaxValidVertexID(VertexID vertexL) {
         OrientedGraph::SetCapacityForMaxValidVertexID(vertexL);
-#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
+      #if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
         m_canreach.SetCapacityForMaxValidVertexID(vertexL);
-#endif
+      #endif
     }
     void SetCapacitySoVertexIsFirstInvalidID(VertexID vertexL) {
         OrientedGraph::SetCapacitySoVertexIsFirstInvalidID(vertexL);
-#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
+      #if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
         m_canreach.SetCapacityForMaxValidVertexID(vertexL);
-#endif
+      #endif
     }
     void GrowCapacityForMaxValidVertexID(VertexID vertexL) {
         OrientedGraph::GrowCapacityForMaxValidVertexID(vertexL);
-#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
+      #if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
         m_canreach.SetCapacityForMaxValidVertexID(vertexL);
-#endif
+      #endif
     }
     void ShrinkCapacitySoVertexIsFirstInvalidID(VertexID vertexL) {
         OrientedGraph::ShrinkCapacitySoVertexIsFirstInvalidID(vertexL);
-#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
+      #if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
         m_canreach.ShrinkCapacitySoVertexIsFirstInvalidID(vertexL);
-#endif
+      #endif
     }
 
     //
     // CREATION OVERRIDES
     //
-public:
+  public:
     void CreateVertexEx(VertexID vertexE, VertexType vertexType) {
         OrientedGraph::CreateVertexEx(vertexE, vertexType);
-#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
+      #if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
         m_canreach.CreateVertexEx(vertexE, canreachClean);
-#endif
+      #endif
     }
     inline void CreateVertex(VertexID vertexE) {
         return CreateVertexEx(vertexE, vertexTypeOne);
@@ -421,15 +423,15 @@ public:
     //
     // DESTRUCTION OVERRIDES
     //
-public:
+  public:
     inline void DestroyVertexEx(VertexID vertex, VertexType& vertexType, bool compactIfDestroy = true, unsigned* incomingEdgeCount = NULL, unsigned* outgoingEdgeCount = NULL ) {
         OrientedGraph::DestroyVertexEx(vertex, vertexType, compactIfDestroy, incomingEdgeCount, outgoingEdgeCount);
-#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
+      #if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
         unsigned incomingEdgeCanreach;
         unsigned outgoingEdgeCanreach;
         VertexType vertexTypeCanreach;
         m_canreach.DestroyVertexEx(vertex, vertexTypeCanreach, compactIfDestroy, &incomingEdgeCanreach, &outgoingEdgeCanreach);
-#endif
+      #endif
     }
     inline void DestroyVertex(VertexID vertex, unsigned* incomingEdgeCount = NULL, unsigned* outgoingEdgeCount = NULL) {
         VertexType vertexType;
@@ -484,7 +486,7 @@ public:
         DestroyIsolatedVertexEx(vertex, vertexType, true /* compactIfDestroy */ );
     }
 
-public:
+  public:
     // SetEdge throws exceptions on cycle.  To avoid having to write exception handling,
     // use this routine before calling SetEdge.
     inline bool InsertionWouldCauseCycle(VertexID fromVertex, VertexID toVertex) {
@@ -492,27 +494,27 @@ public:
     }
 
     bool SetEdge(VertexID fromVertex, VertexID toVertex) {
-#if DIRECTEDACYCLICGRAPH_CONSISTENCY_CHECK
+      #if DIRECTEDACYCLICGRAPH_CONSISTENCY_CHECK
         ConsistencyCheck cc (*this);
-#endif
+      #endif
 
         if (InsertionWouldCauseCycle(fromVertex, toVertex)) {
             bad_cycle bc;
             throw bc;
         }
 
-#if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
+      #if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
         // this may have false positives, for the moment let's union the "false positive tristate"
         // with the rest of the "false positive" reachability data...
         bool reachablePriorToEdge = m_canreach.EdgeExists(fromVertex, toVertex);
-#endif
+      #endif
 
         // set the physical edge in the data structure
         bool edgeIsNew = OrientedGraph::SetEdge(fromVertex, toVertex);
         if (!edgeIsNew)
             return false;
 
-#if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
+      #if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
         // save whether the toVertex was reachable prior to the physical connection in the
         // extra tristate for this edge
         if (reachablePriorToEdge) {
@@ -520,9 +522,9 @@ public:
         } else {
             SetTristateForConnection(fromVertex, toVertex, notReachableWithoutEdge);
         }
-#endif
+      #endif
 
-#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
+      #if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
         // All the vertices that toVertex "canreach", including itself
         // (Note: may contain false positives if vertexTypeTo == canreachMayHaveFalsePositives)
         std::set<OrientedGraph::VertexID> toCanreach = OutgoingReachForVertexIncludingSelf(toVertex);
@@ -547,7 +549,7 @@ public:
 
             VertexID canreachFromVertex = (*iterCanreachFrom++);
 
-#if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
+          #if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
             // These new reachabilities may lead us to need to bump a physical connection on
             // vertices that can reach fromVertex regarding how it can reach a vertex that toVertex canreach.
             // This would be from notReachableWithoutEdge to isReachableWithoutEdge.  Basically,
@@ -569,7 +571,7 @@ public:
                     }
             /*  }*/
             }
-#endif
+          #endif
 
             std::set<OrientedGraph::VertexID>::iterator iterToCanreach = toCanreach.begin();
             while(iterToCanreach != toCanreach.end()) {
@@ -611,7 +613,7 @@ public:
                 }
             }
         }
-#endif
+      #endif
 
         return true;
     }
@@ -621,11 +623,11 @@ public:
     }
 
     bool ClearEdge(VertexID fromVertex, VertexID toVertex) {
-#if DIRECTEDACYCLICGRAPH_CONSISTENCY_CHECK
+      #if DIRECTEDACYCLICGRAPH_CONSISTENCY_CHECK
         ConsistencyCheck cc (*this);
-#endif
+      #endif
 
-#if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
+      #if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
         if (!EdgeExists(fromVertex, toVertex))
             return false;
 
@@ -643,12 +645,12 @@ public:
             m_canreach.AddEdge(fromVertex, toVertex);
             return true;
         }
-#else
+      #else
         if (!OrientedGraph::ClearEdge(fromVertex, toVertex))
             return false;
-#endif
+      #endif
 
-#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
+      #if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
         // removing a edge calls into question all of our canreach vertices, and all the canreach vertices of vertices that
         // canreach us... however, anything downstream of us is guaranteed to not have its reachability affected
         // due to the lack of cyclic relationships.  e.g. anything that we "canreach" is excluded from concern
@@ -674,7 +676,7 @@ public:
         if (m_canreach.EdgeExists(toVertex, fromVertex))
             m_canreach.RemoveEdge(toVertex, fromVertex);
         m_canreach.SetEdge(fromVertex, toVertex);
-#endif
+      #endif
         return true;
     }
     void RemoveEdge(VertexID fromVertex, VertexID toVertex) {
@@ -686,8 +688,8 @@ public:
     //
     // DEBUGGING ROUTINES
     //
-#if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
-public:
+  #if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
+  public:
     std::set<VertexID> OutgoingTransitiveVertices(VertexID vertex, const VertexID* vertexIgnoreEdge, bool includeDirectEdges) {
         std::set<VertexID> result;
         std::stack<VertexID> vertexStack;
@@ -750,7 +752,7 @@ public:
                     }
                     nocycle_assert(outgoingReach.size() == outgoingTransitiveClosure.size());
 
-#if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
+                  #if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
                     std::set<VertexID>::iterator outgoingIter = outgoing.begin();
                     while (outgoingIter != outgoing.end()) {
                         VertexID outgoingVertex = (*outgoingIter++);
@@ -771,7 +773,7 @@ public:
                             nocycle_assert(false);
                         }
                     }
-#endif
+                  #endif
                     break;
                 }
                 case canreachMayHaveFalsePositives: {
@@ -793,17 +795,17 @@ public:
     }
 
     class ConsistencyCheck {
-    private:
+      private:
         DirectedAcyclicGraph& m_dag;
-    public:
+      public:
         ConsistencyCheck(DirectedAcyclicGraph& dag) : m_dag (dag) { };
         virtual ~ConsistencyCheck() {
             nocycle_assert(m_dag.IsInternallyConsistent());
         }
     };
-#endif
+  #endif
 
-public:
+  public:
     static bool SelfTest();
 };
 

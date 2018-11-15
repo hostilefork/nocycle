@@ -170,16 +170,16 @@ bool DirectedAcyclicGraph::SelfTest() {
             } else {
                 dag.GetRandomNonEdge(vertexSource, vertexDest);
 
-#if DIRECTEDACYCLICGRAPH_USER_TRISTATE
+              #if DIRECTEDACYCLICGRAPH_USER_TRISTATE
                 Nstate<3> randomTristate (rand() % 3);
-#endif
+              #endif
 
                 bool causedCycleInBoost = false;
                 try {
                     bdag.AddEdge(vertexSource, vertexDest);
-#if DIRECTEDACYCLICGRAPH_USER_TRISTATE
+                  #if DIRECTEDACYCLICGRAPH_USER_TRISTATE
                     bdag.SetTristateForConnection(vertexSource, vertexDest, randomTristate);
-#endif
+                  #endif
                 } catch (bad_cycle& e) {
                     causedCycleInBoost = true;
                 }
@@ -187,9 +187,9 @@ bool DirectedAcyclicGraph::SelfTest() {
                 bool causedCycle = false;
                 try {
                     dag.AddEdge(vertexSource, vertexDest);
-#if DIRECTEDACYCLICGRAPH_USER_TRISTATE
+                  #if DIRECTEDACYCLICGRAPH_USER_TRISTATE
                     dag.SetTristateForConnection(vertexSource, vertexDest, randomTristate);
-#endif
+                  #endif
                 } catch (bad_cycle& e) {
                     causedCycle = true;
                 }
