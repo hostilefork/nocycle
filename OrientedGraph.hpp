@@ -265,7 +265,7 @@ class OrientedGraph {
         return const_cast<OrientedGraph*>(this)->GetVertexInfoMaybeDestroy(vertexE, exists, vertexType, incomingEdgeCount, outgoingEdgeCount);
     }
 
-public:
+  public:
 
     //
     // NODE EXISTENCE ROUTINES

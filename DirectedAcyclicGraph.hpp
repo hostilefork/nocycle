@@ -35,7 +35,6 @@ class bad_cycle : public std::exception {
 };
 
 
-
 // Each class that uses another in its implementation should insulate its
 // clients from that fact.  A lazy man's composition pattern can be achieved with
 // private inheritance: http://www.parashift.com/c++-faq-lite/private-inheritance.html
