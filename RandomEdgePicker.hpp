@@ -32,10 +32,10 @@ namespace nocycle {
 // and how many outgoing connections they have.  Armed with this information, you can
 // pick a link at random!
 //
-template<class BaseClass>
-class RandomEdgePicker : public BaseClass {
-public:
-    typedef typename BaseClass::VertexID VertexID;
+template<class Base>
+class RandomEdgePicker : public Base {
+  public:
+    typedef typename Base::VertexID VertexID;
 
 private:
     std::map<size_t, std::set<VertexID> > m_verticesByOutgoingEdgeCount;
@@ -45,17 +45,17 @@ public:
     // NOTE: There are variations of these functions, need to mirror them all!
     void CreateVertex(VertexID vertex) {
         m_verticesByOutgoingEdgeCount[0].insert(vertex);
-        BaseClass::CreateVertex(vertex);
+        Base::CreateVertex(vertex);
     }
     void DestroyVertex(VertexID vertex) {
         nocycle_assert(m_verticesByOutgoingEdgeCount[0].find(vertex) != m_verticesByOutgoingEdgeCount[0].end());
         m_verticesByOutgoingEdgeCount[0].erase(vertex);
-        BaseClass::DestroyVertex(vertex);
+        Base::DestroyVertex(vertex);
     }
     bool SetEdge(VertexID fromVertex, VertexID toVertex) {
-        if (BaseClass::SetEdge(fromVertex, toVertex)) {
+        if (Base::SetEdge(fromVertex, toVertex)) {
             m_numEdges++;
-            unsigned numOutgoing = OutgoingEdgesForVertex(fromVertex).size();
+            unsigned numOutgoing = Base::OutgoingEdgesForVertex(fromVertex).size();
             m_verticesByOutgoingEdgeCount[numOutgoing-1].erase(fromVertex);
             m_verticesByOutgoingEdgeCount[numOutgoing].insert(fromVertex);
             return true;
@@ -63,14 +63,14 @@ public:
         return false;
     }
     void AddEdge(VertexID fromVertex, VertexID toVertex) {
-        if (!SetEdge(fromVertex, toVertex))
+        if (!RandomEdgePicker::SetEdge(fromVertex, toVertex))
             nocycle_assert(false);
     }
     bool ClearEdge(VertexID fromVertex, VertexID toVertex) {
-        if (BaseClass::ClearEdge(fromVertex, toVertex)) {
+        if (Base::ClearEdge(fromVertex, toVertex)) {
             nocycle_assert(m_numEdges > 0);
             m_numEdges--;
-            unsigned numOutgoing = OutgoingEdgesForVertex(fromVertex).size();
+            unsigned numOutgoing = Base::OutgoingEdgesForVertex(fromVertex).size();
             m_verticesByOutgoingEdgeCount[numOutgoing+1].erase(fromVertex);
             m_verticesByOutgoingEdgeCount[numOutgoing].insert(fromVertex);
             return true;
@@ -78,7 +78,7 @@ public:
         return false;
     }
     void RemoveEdge(VertexID fromVertex, VertexID toVertex) {
-        if (!ClearEdge(fromVertex, toVertex))
+        if (!RandomEdgePicker::ClearEdge(fromVertex, toVertex))
             nocycle_assert(false);
     }
 
@@ -140,7 +140,7 @@ public:
             numOutgoing = (*verticesByOutgoingEdgeCountIter).first;
             numEdgesWithThisOutgoingCount = (*verticesByOutgoingEdgeCountIter).second.size();
             nocycle_assert(verticesByOutgoingEdgeCountIter != m_verticesByOutgoingEdgeCount.end());
-            }
+        }
 
         typename std::set<VertexID>::const_iterator setOfVerticesIter = (*verticesByOutgoingEdgeCountIter).second.begin();
         while (edgeIndex >= numOutgoing) {
@@ -152,7 +152,7 @@ public:
         fromVertex = *setOfVerticesIter;
 
         // Now we pick the edge from the outgoing set based on what's left of our index
-        std::set<VertexID> outgoing = OutgoingEdgesForVertex(fromVertex);
+        std::set<VertexID> outgoing = Base::OutgoingEdgesForVertex(fromVertex);
         nocycle_assert(outgoing.size() == numOutgoing);
         typename std::set<VertexID>::const_iterator outgoingIter = outgoing.begin();
         while (edgeIndex > 0) {
@@ -167,7 +167,7 @@ public:
         nocycle_assert(numOutgoing > 0);
     }
     void GetRandomNonEdge(VertexID& fromVertex, VertexID& toVertex) const {
-        VertexID maxID = BaseClass::GetFirstInvalidVertexID();
+        VertexID maxID = Base::GetFirstInvalidVertexID();
 
         // for the moment, we assume the graph is not so dense that this will take
         // an inordinate amount of time, but we could in theory use a reverse
@@ -175,16 +175,16 @@ public:
         do {
             do {
                 fromVertex = rand() % maxID;
-            } while (!VertexExists(fromVertex));
+            } while (!Base::VertexExists(fromVertex));
             do {
                 toVertex = rand() % maxID;
-            } while ((fromVertex == toVertex) || (!VertexExists(toVertex)));
-        } while (HasLinkage(fromVertex, toVertex));
+            } while ((fromVertex == toVertex) || (!Base::VertexExists(toVertex)));
+        } while (Base::HasLinkage(fromVertex, toVertex));
     }
 
 public:
     RandomEdgePicker (const size_t initial_size) :
-        BaseClass (initial_size),
+        Base (initial_size),
         m_numEdges (0)
     {
     }
