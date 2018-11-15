@@ -43,18 +43,6 @@
 // large numbers of nodes when existence tracking is not needed.
 #cmakedefine01 BOOSTIMPLEMENTATION_TRACK_EXISTENCE
 
-// Asserts are known to slow down the debug build.  But sometimes, you
-// want to have the debug information available while still not having
-// assertions run...e.g. so you can pause to see where execution is
-// getting held up (a kind of poor-man's profiling).
-#cmakedefine01 DEACTIVATE_NOCYCLE_ASSERT
-#if DEACTIVATE_NOCYCLE_ASSERT
-#define nocycle_assert(expr) ((void)0)
-#else
-#include <cassert>
-#define nocycle_assert(expr) assert(expr)
-#endif
-
 // Experimental attempt to cache transitive closure, not for general use
 #cmakedefine01 DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
 

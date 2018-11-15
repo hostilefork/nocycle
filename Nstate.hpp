@@ -24,6 +24,7 @@
 
 // REVIEW: std::numeric_limits?
 #include <climits>
+#include <cassert>
 
 //
 // NSTATE
@@ -184,14 +185,14 @@ class NstateArray {
     };
 
     reference operator[](size_t pos) {
-        nocycle_assert(pos < m_max); // STL will only check bounds on integer boundaries
+        assert(pos < m_max); // STL will only check bounds on integer boundaries
         size_t indexIntoBuffer = pos / NstatesInPackedType();
         unsigned digit = pos % NstatesInPackedType();
         return reference (*this, indexIntoBuffer, digit);
     }
 
     Nstate<radix> operator[](size_t pos) const {
-        nocycle_assert(pos < m_max); // STL will only check bounds on integer boundaries.
+        assert(pos < m_max); // STL will only check bounds on integer boundaries.
         size_t indexIntoBuffer = pos / NstatesInPackedType();
         unsigned digit = pos % NstatesInPackedType();
         return GetDigitInPackedValue(m_buffer[indexIntoBuffer], digit);
@@ -270,7 +271,7 @@ Nstate<radix> NstateArray<radix>::GetDigitInPackedValue(PackedTypeForNstate pack
     // Generalized from Mark Bessey's post in the Joel on Software forum
     // http://discuss.joelonsoftware.com/default.asp?joel.3.205331.14
 
-    nocycle_assert(digit < NstatesInPackedType());
+    assert(digit < NstatesInPackedType());
 
     // lop off unused top digits - you can skip this
     // for the most-significant digit
@@ -285,7 +286,7 @@ Nstate<radix> NstateArray<radix>::GetDigitInPackedValue(PackedTypeForNstate pack
 
 template <int radix>
 PackedTypeForNstate NstateArray<radix>::SetDigitInPackedValue(PackedTypeForNstate packed, unsigned digit, Nstate<radix> t) const {
-    nocycle_assert(digit < NstatesInPackedType());
+    assert(digit < NstatesInPackedType());
 
     PackedTypeForNstate powForDigitPlusOne = PowerForDigit(digit+1);
     PackedTypeForNstate powForDigit = PowerForDigit(digit);
@@ -379,7 +380,7 @@ bool NstateArray<radix>::SelfTest() {
             newSmallerSize = (rand() % initialSize);
             nv.ResizeWithZeros(newSmallerSize);
             v.resize(newSmallerSize, 0);
-            nocycle_assert(nv.Length() == v.size());
+            assert(nv.Length() == v.size());
 
             for (size_t index = 0; index < newSmallerSize; index++) {
                 if (nv[index] != v[index]) {
@@ -396,7 +397,7 @@ bool NstateArray<radix>::SelfTest() {
         size_t newLargerSize = newSmallerSize + (rand() % 128);
         nv.ResizeWithZeros(newLargerSize);
         v.resize(newLargerSize, 0);
-        nocycle_assert(nv.Length() == v.size());
+        assert(nv.Length() == v.size());
 
         for (size_t index = 0; index < newLargerSize; index++) {
             if (nv[index] != v[index]) {

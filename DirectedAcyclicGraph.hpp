@@ -106,7 +106,7 @@ class DirectedAcyclicGraph : public OrientedGraph {
   private:
   #endif
     Nstate<3> GetTristateForConnection(VertexID fromVertex, VertexID toVertex) const {
-        nocycle_assert(EdgeExists(fromVertex, toVertex));
+        assert(EdgeExists(fromVertex, toVertex));
 
         bool forwardEdge, reverseEdge;
         if (m_canreach.HasLinkage(fromVertex, toVertex, &forwardEdge, &reverseEdge)) {
@@ -116,13 +116,13 @@ class DirectedAcyclicGraph : public OrientedGraph {
             if (reverseEdge)
                 return 2;
 
-            nocycle_assert(false);
+            assert(false);
         }
 
         return 0;
     }
     void SetTristateForConnection(VertexID fromVertex, VertexID toVertex, Nstate<3> tristate) {
-        nocycle_assert(EdgeExists(fromVertex, toVertex));
+        assert(EdgeExists(fromVertex, toVertex));
 
         bool forwardEdge, reverseEdge;
         m_canreach.HasLinkage(fromVertex, toVertex, &forwardEdge, &reverseEdge);
@@ -148,7 +148,7 @@ class DirectedAcyclicGraph : public OrientedGraph {
                 break;
             }
             default:
-                nocycle_assert(false);
+                assert(false);
         }
     }
 
@@ -162,7 +162,7 @@ class DirectedAcyclicGraph : public OrientedGraph {
 
     bool ClearReachEdge(VertexID fromVertex, VertexID toVertex) {
         // don't want to damage a tristate!
-        nocycle_assert(!HasLinkage(fromVertex, toVertex));
+        assert(!HasLinkage(fromVertex, toVertex));
         return m_canreach.ClearEdge(fromVertex, toVertex);
     }
     void RemoveReachEdge(VertexID fromVertex, VertexID toVertex) {
@@ -172,7 +172,7 @@ class DirectedAcyclicGraph : public OrientedGraph {
 
     bool SetReachEdge(VertexID fromVertex, VertexID toVertex) {
         // don't want to damage a tristate!
-        nocycle_assert(!HasLinkage(fromVertex, toVertex));
+        assert(!HasLinkage(fromVertex, toVertex));
         return m_canreach.SetEdge(fromVertex, toVertex);
     }
     void AddReachEdge(VertexID fromVertex, VertexID toVertex) {
@@ -266,7 +266,7 @@ class DirectedAcyclicGraph : public OrientedGraph {
                 if (!EdgeExists(fromVertex, outgoingForOutgoingVertex)) {
                     if (m_canreach.EdgeExists(outgoingForOutgoingVertex, fromVertex)) {
                         VertexType vertexTypeOutgoingForOutgoing = m_canreach.GetVertexType(outgoingForOutgoingVertex);
-                        nocycle_assert(vertexTypeOutgoingForOutgoing == canreachMayHaveFalsePositives);
+                        assert(vertexTypeOutgoingForOutgoing == canreachMayHaveFalsePositives);
                         RemoveReachEdge(outgoingForOutgoingVertex, fromVertex);
                     }
                     SetReachEdge(fromVertex, outgoingForOutgoingVertex);
@@ -319,7 +319,7 @@ public:
             if (reverseEdge)
                 return false;
 
-            nocycle_assert(false);
+            assert(false);
             return false;
         }
 
@@ -339,11 +339,11 @@ public:
             }
 
             default:
-                nocycle_assert(false);
+                assert(false);
                 return false;
         };
 
-        nocycle_assert(false);
+        assert(false);
         return false;
     }
   #else
@@ -445,7 +445,7 @@ public:
     void DestroySourceVertexEx(VertexID vertex, VertexType& vertexType, bool compactIfDestroy = true, unsigned* outgoingEdgeCount = NULL) {
         unsigned incomingEdgeCount;
         DestroyVertexEx(vertex, vertexType, compactIfDestroy, &incomingEdgeCount, outgoingEdgeCount);
-        nocycle_assert(incomingEdgeCount == 0);
+        assert(incomingEdgeCount == 0);
     }
     inline void DestroySourceVertex(VertexID vertex, unsigned* outgoingEdgeCount = NULL) {
         VertexType vertexType;
@@ -459,7 +459,7 @@ public:
     void DestroySinkVertexEx(VertexID vertex, VertexType& vertexType, bool compactIfDestroy = true, unsigned* incomingEdgeCount = NULL) {
         unsigned outgoingEdgeCount;
         DestroyVertexEx(vertex, vertexType, compactIfDestroy, incomingEdgeCount, &outgoingEdgeCount);
-        nocycle_assert(outgoingEdgeCount == 0);
+        assert(outgoingEdgeCount == 0);
     }
     inline void DestroySinkVertex(VertexID vertex, unsigned* incomingEdgeCount = NULL) {
         VertexType vertexType;
@@ -474,8 +474,8 @@ public:
         unsigned incomingEdgeCount;
         unsigned outgoingEdgeCount;
         DestroyVertexEx(vertex, vertexType, compactIfDestroy, &incomingEdgeCount, &outgoingEdgeCount);
-        nocycle_assert(incomingEdgeCount == 0);
-        nocycle_assert(outgoingEdgeCount == 0);
+        assert(incomingEdgeCount == 0);
+        assert(outgoingEdgeCount == 0);
     }
     inline void DestroyIsolatedVertex(VertexID vertex) {
         VertexType vertexType;
@@ -577,7 +577,7 @@ public:
             while(iterToCanreach != toCanreach.end()) {
 
                 VertexID toCanreachVertex = (*iterToCanreach++);
-                nocycle_assert(canreachFromVertex != toCanreachVertex);
+                assert(canreachFromVertex != toCanreachVertex);
 
                 bool forwardEdge, reverseEdge;
                 HasLinkage(canreachFromVertex, toCanreachVertex, &forwardEdge, &reverseEdge);
@@ -595,11 +595,11 @@ public:
                         // if it were actually true that a vertex that toVertex canreach could reach
                         // a vertex that canreach fromVertex, then a connection from toVertex to fromVertex
                         // would be a cycle.
-                        nocycle_assert(!m_canreach.EdgeExists(toCanreachVertex, canreachFromVertex));
+                        assert(!m_canreach.EdgeExists(toCanreachVertex, canreachFromVertex));
                     }
 
                     if (reverseEdge) {
-                        nocycle_assert(vertexTypeToCanreach == canreachMayHaveFalsePositives);
+                        assert(vertexTypeToCanreach == canreachMayHaveFalsePositives);
                         // we know for a fact here now that canreachFromVertex *can't* reach toCanreachVertex
                         // so ignore this and don't propagate it...
                     } else {
@@ -619,7 +619,7 @@ public:
     }
     void AddEdge(VertexID fromVertex, VertexID toVertex) {
         if (!SetEdge(fromVertex, toVertex))
-            nocycle_assert(false);
+            assert(false);
     }
 
     bool ClearEdge(VertexID fromVertex, VertexID toVertex) {
@@ -681,7 +681,7 @@ public:
     }
     void RemoveEdge(VertexID fromVertex, VertexID toVertex) {
         if (!ClearEdge(fromVertex, toVertex))
-            nocycle_assert(false);
+            assert(false);
     }
 
 
@@ -750,7 +750,7 @@ public:
                         if (outgoingReach.find(outgoingTransitiveClosureVertex) == outgoingReach.end())
                             return false;
                     }
-                    nocycle_assert(outgoingReach.size() == outgoingTransitiveClosure.size());
+                    assert(outgoingReach.size() == outgoingTransitiveClosure.size());
 
                   #if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
                     std::set<VertexID>::iterator outgoingIter = outgoing.begin();
@@ -770,7 +770,7 @@ public:
                             break;
                         }
                         default:
-                            nocycle_assert(false);
+                            assert(false);
                         }
                     }
                   #endif
@@ -783,11 +783,11 @@ public:
                         if (outgoingReach.find(outgoingTransitiveClosureVertex) == outgoingReach.end())
                             return false;
                     }
-                    nocycle_assert(outgoingReach.size() >= outgoingTransitiveClosure.size());
+                    assert(outgoingReach.size() >= outgoingTransitiveClosure.size());
                     break;
                 }
                 default:
-                    nocycle_assert(false);
+                    assert(false);
             }
         }
 
@@ -800,7 +800,7 @@ public:
       public:
         ConsistencyCheck(DirectedAcyclicGraph& dag) : m_dag (dag) { };
         virtual ~ConsistencyCheck() {
-            nocycle_assert(m_dag.IsInternallyConsistent());
+            assert(m_dag.IsInternallyConsistent());
         }
     };
   #endif

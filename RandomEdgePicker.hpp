@@ -46,7 +46,7 @@ class RandomEdgePicker : public Base {
         Base::CreateVertex(vertex);
     }
     void DestroyVertex(VertexID vertex) {
-        nocycle_assert(m_verticesByOutgoingEdgeCount[0].find(vertex) != m_verticesByOutgoingEdgeCount[0].end());
+        assert(m_verticesByOutgoingEdgeCount[0].find(vertex) != m_verticesByOutgoingEdgeCount[0].end());
         m_verticesByOutgoingEdgeCount[0].erase(vertex);
         Base::DestroyVertex(vertex);
     }
@@ -62,11 +62,11 @@ class RandomEdgePicker : public Base {
     }
     void AddEdge(VertexID fromVertex, VertexID toVertex) {
         if (!RandomEdgePicker::SetEdge(fromVertex, toVertex))
-            nocycle_assert(false);
+            assert(false);
     }
     bool ClearEdge(VertexID fromVertex, VertexID toVertex) {
         if (Base::ClearEdge(fromVertex, toVertex)) {
-            nocycle_assert(m_numEdges > 0);
+            assert(m_numEdges > 0);
             m_numEdges--;
             unsigned numOutgoing = Base::OutgoingEdgesForVertex(fromVertex).size();
             m_verticesByOutgoingEdgeCount[numOutgoing+1].erase(fromVertex);
@@ -77,7 +77,7 @@ class RandomEdgePicker : public Base {
     }
     void RemoveEdge(VertexID fromVertex, VertexID toVertex) {
         if (!RandomEdgePicker::ClearEdge(fromVertex, toVertex))
-            nocycle_assert(false);
+            assert(false);
     }
 
   public:
@@ -110,7 +110,7 @@ class RandomEdgePicker : public Base {
     // Really, it makes sense.  :)  Leaving it a little messy for the moment since it's
     // just used for testing.
     void GetRandomEdge(VertexID& fromVertex, VertexID& toVertex) const {
-        nocycle_assert(m_numEdges > 0);
+        assert(m_numEdges > 0);
         if (0) { // test code, useful if you suspect the sets aren't accurate
             unsigned numEdgesCheck = 0;
             typename std::map<size_t, std::set<VertexID> >::const_iterator verticesByOutgoingEdgeCountCheckIter =
@@ -120,7 +120,7 @@ class RandomEdgePicker : public Base {
                 numEdgesCheck += (*verticesByOutgoingEdgeCountCheckIter).first * (*verticesByOutgoingEdgeCountCheckIter).second.size();
                 verticesByOutgoingEdgeCountCheckIter++;
             }
-            nocycle_assert(numEdgesCheck == m_numEdges);
+            assert(numEdgesCheck == m_numEdges);
         }
 
         unsigned edgeIndexToRemove = rand() % m_numEdges;
@@ -137,32 +137,32 @@ class RandomEdgePicker : public Base {
             verticesByOutgoingEdgeCountIter++;
             numOutgoing = (*verticesByOutgoingEdgeCountIter).first;
             numEdgesWithThisOutgoingCount = (*verticesByOutgoingEdgeCountIter).second.size();
-            nocycle_assert(verticesByOutgoingEdgeCountIter != m_verticesByOutgoingEdgeCount.end());
+            assert(verticesByOutgoingEdgeCountIter != m_verticesByOutgoingEdgeCount.end());
         }
 
         typename std::set<VertexID>::const_iterator setOfVerticesIter = (*verticesByOutgoingEdgeCountIter).second.begin();
         while (edgeIndex >= numOutgoing) {
             edgeIndex -= numOutgoing;
             setOfVerticesIter++;
-            nocycle_assert(setOfVerticesIter != (*verticesByOutgoingEdgeCountIter).second.end());
+            assert(setOfVerticesIter != (*verticesByOutgoingEdgeCountIter).second.end());
         }
 
         fromVertex = *setOfVerticesIter;
 
         // Now we pick the edge from the outgoing set based on what's left of our index
         std::set<VertexID> outgoing = Base::OutgoingEdgesForVertex(fromVertex);
-        nocycle_assert(outgoing.size() == numOutgoing);
+        assert(outgoing.size() == numOutgoing);
         typename std::set<VertexID>::const_iterator outgoingIter = outgoing.begin();
         while (edgeIndex > 0) {
             edgeIndex--;
             outgoingIter++;
-            nocycle_assert(outgoingIter != outgoing.end());
+            assert(outgoingIter != outgoing.end());
         }
 
         toVertex = *outgoingIter;
 
-        nocycle_assert(verticesByOutgoingEdgeCountIter != m_verticesByOutgoingEdgeCount.end());
-        nocycle_assert(numOutgoing > 0);
+        assert(verticesByOutgoingEdgeCountIter != m_verticesByOutgoingEdgeCount.end());
+        assert(numOutgoing > 0);
     }
     void GetRandomNonEdge(VertexID& fromVertex, VertexID& toVertex) const {
         VertexID maxID = Base::GetFirstInvalidVertexID();

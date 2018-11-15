@@ -60,15 +60,15 @@ class OrientedGraph {
     // E(N) => N*(N-1)/2
     // Explained at http://hostilefork.com/nocycle/
     inline size_t TristateIndexForExistence(VertexID vertexE) const {
-        nocycle_assert(vertexE < std::numeric_limits<unsigned>::max());
+        assert(vertexE < std::numeric_limits<unsigned>::max());
         return (vertexE * static_cast<unsigned long long>(vertexE + 1)) / 2;
     }
 
     // C(S,L) => E(L) + (L - S)
     // Explained at http://hostilefork.com/nocycle/
     inline size_t TristateIndexForConnection(VertexID vertexS, VertexID vertexL) const {
-        nocycle_assert(vertexL < std::numeric_limits<unsigned>::max());
-        nocycle_assert(vertexS < vertexL);
+        assert(vertexL < std::numeric_limits<unsigned>::max());
+        assert(vertexS < vertexL);
 
         return TristateIndexForExistence(vertexL) + (vertexL - vertexS);
     }
@@ -77,18 +77,18 @@ class OrientedGraph {
         // The index into the NstateArray can be *big*, and multiplying by 8 can exceed size_t
         // Must cast to an unsigned long long to do this calculation
         vertexE = static_cast<VertexID>((sqrt(1 + 8 * static_cast<unsigned long long>(pos)) - 1) / 2);
-        nocycle_assert(TristateIndexForExistence(vertexE) == pos); // should be *exact*, not rounded down!!!!
+        assert(TristateIndexForExistence(vertexE) == pos); // should be *exact*, not rounded down!!!!
     }
 
     void VerticesFromConnectionTristateIndex(size_t pos, VertexID& vertexS, VertexID& vertexL) const {
         vertexL = static_cast<VertexID>((sqrt(1 + 8 * static_cast<unsigned long long>(pos)) - 1) / 2);
         size_t tife = TristateIndexForExistence(vertexL);
-        nocycle_assert(tife != pos); // should be rounded down, not *exact*!!!
+        assert(tife != pos); // should be rounded down, not *exact*!!!
         /* vertexL - vertexS = pos - tife; */
         assert (tife + vertexL > pos);
         vertexS = (tife + vertexL) - pos;
-        nocycle_assert(vertexL > vertexS);
-        nocycle_assert(TristateIndexForConnection(vertexS, vertexL) == pos);
+        assert(vertexL > vertexS);
+        assert(TristateIndexForConnection(vertexS, vertexL) == pos);
     }
 
     bool IsExistenceTristateIndex(size_t pos) const {
@@ -133,7 +133,7 @@ class OrientedGraph {
     // connection data for vertexL.  Any new vertices added will not exist yet and not
     // have connection data.  Any vertices existing above this ID # will
     void SetCapacityForMaxValidVertexID(VertexID vertexL) {
-        nocycle_assert(vertexL < std::numeric_limits<unsigned>::max()); // max is reserved for max invalid vertex ID
+        assert(vertexL < std::numeric_limits<unsigned>::max()); // max is reserved for max invalid vertex ID
         m_buffer.ResizeWithZeros(TristateIndexForExistence(vertexL + 1));
     }
     void SetCapacitySoVertexIsFirstInvalidID(VertexID vertexL) {
@@ -143,11 +143,11 @@ class OrientedGraph {
             m_buffer.ResizeWithZeros(TristateIndexForExistence(vertexL));
     }
     void GrowCapacityForMaxValidVertexID(VertexID vertexL) {
-        nocycle_assert(vertexL >= GetFirstInvalidVertexID());
+        assert(vertexL >= GetFirstInvalidVertexID());
         SetCapacityForMaxValidVertexID(vertexL);
     }
     void ShrinkCapacitySoVertexIsFirstInvalidID(VertexID vertexL) {
-        nocycle_assert(vertexL < GetFirstInvalidVertexID());
+        assert(vertexL < GetFirstInvalidVertexID());
         SetCapacitySoVertexIsFirstInvalidID(vertexL);
     }
 
@@ -177,7 +177,7 @@ class OrientedGraph {
                 vertexType = vertexTypeTwo;
                 break;
             default:
-                nocycle_assert(false);
+                assert(false);
         }
 
         if (outgoingEdgeCount != NULL)
@@ -226,7 +226,7 @@ class OrientedGraph {
                         }
                         break;
                     default:
-                        nocycle_assert(false);
+                        assert(false);
                 }
 
                 // Destroying a vertex's existence also destroys all incoming and outgoing connections for that vertex
@@ -244,7 +244,7 @@ class OrientedGraph {
             if (compactIfDestroy) {
                 bool noValidID;
                 unsigned vertexT = GetMaxValidVertexID(noValidID);
-                nocycle_assert(!noValidID);
+                assert(!noValidID);
 
                 if (m_buffer[TristateIndexForExistence(vertexT)] == doesNotExist) {
                     VertexID vertexFirstUnused = vertexT;
@@ -287,7 +287,7 @@ public:
     //
 
     void CreateVertexEx(VertexID vertexE, VertexType vertexType) {
-        nocycle_assert(!VertexExists(vertexE));
+        assert(!VertexExists(vertexE));
         if (vertexType == vertexTypeOne) {
             m_buffer[TristateIndexForExistence(vertexE)] = existsAsTypeOne;
         } else {
@@ -298,7 +298,7 @@ public:
         return CreateVertexEx(vertexE, vertexTypeOne);
     }
     void SetVertexType(VertexID vertexE, VertexType vertexType) {
-        nocycle_assert(VertexExists(vertexE));
+        assert(VertexExists(vertexE));
         if (vertexType == vertexTypeOne) {
             m_buffer[TristateIndexForExistence(vertexE)] = existsAsTypeOne;
         } else {
@@ -309,14 +309,14 @@ public:
         bool exists;
         VertexType vertexType;
         GetVertexInfo(vertexE, exists, vertexType);
-        nocycle_assert(exists);
+        assert(exists);
         return vertexType;
     }
     void FlipVertexType(VertexID vertexE) {
         bool exists;
         VertexType vertexType;
         GetVertexInfo(vertexE, exists, vertexType);
-        nocycle_assert(exists);
+        assert(exists);
         if (vertexType == vertexTypeOne)
             SetVertexType(vertexE, vertexTypeTwo);
         else
@@ -330,7 +330,7 @@ public:
     inline void DestroyVertexEx(VertexID vertex, VertexType& vertexType, bool compactIfDestroy = true, unsigned* incomingEdgeCount = NULL, unsigned* outgoingEdgeCount = NULL ) {
         bool exists;
         GetVertexInfoMaybeDestroy(vertex, exists, vertexType, incomingEdgeCount, outgoingEdgeCount, NULL, NULL, true /* destroyIfExists */, compactIfDestroy);
-        nocycle_assert(exists); // it doesn't exist any more!
+        assert(exists); // it doesn't exist any more!
     }
     inline void DestroyVertex(VertexID vertex, unsigned* incomingEdgeCount = NULL, unsigned* outgoingEdgeCount = NULL) {
         VertexType vertexType;
@@ -344,7 +344,7 @@ public:
     void DestroySourceVertexEx(VertexID vertex, VertexType& vertexType, bool compactIfDestroy = true, unsigned* outgoingEdgeCount = NULL) {
         unsigned incomingEdgeCount;
         DestroyVertexEx(vertex, vertexType, compactIfDestroy, &incomingEdgeCount, outgoingEdgeCount);
-        nocycle_assert(incomingEdgeCount == 0);
+        assert(incomingEdgeCount == 0);
     }
     inline void DestroySourceVertex(VertexID vertex, unsigned* outgoingEdgeCount = NULL) {
         VertexType vertexType;
@@ -358,7 +358,7 @@ public:
     void DestroySinkVertexEx(VertexID vertex, VertexType& vertexType, bool compactIfDestroy = true, unsigned* incomingEdgeCount = NULL) {
         unsigned outgoingEdgeCount;
         DestroyVertexEx(vertex, vertexType, compactIfDestroy, incomingEdgeCount, &outgoingEdgeCount);
-        nocycle_assert(outgoingEdgeCount == 0);
+        assert(outgoingEdgeCount == 0);
     }
     inline void DestroySinkVertex(VertexID vertex, unsigned* incomingEdgeCount = NULL) {
         VertexType vertexType;
@@ -373,8 +373,8 @@ public:
         unsigned incomingEdgeCount;
         unsigned outgoingEdgeCount;
         DestroyVertexEx(vertex, vertexType, compactIfDestroy, &incomingEdgeCount, &outgoingEdgeCount);
-        nocycle_assert(incomingEdgeCount == 0);
-        nocycle_assert(outgoingEdgeCount == 0);
+        assert(incomingEdgeCount == 0);
+        assert(outgoingEdgeCount == 0);
     }
     inline void DestroyIsolatedVertex(VertexID vertex) {
         VertexType vertexType;
@@ -394,7 +394,7 @@ public:
         VertexType vertexType;
         std::set<VertexID> outgoingEdges;
         const_cast<OrientedGraph*>(this)->GetVertexInfoMaybeDestroy(vertex, exists, vertexType, NULL, NULL, NULL, &outgoingEdges);
-        nocycle_assert(exists);
+        assert(exists);
         return outgoingEdges;
     }
 
@@ -403,15 +403,15 @@ public:
         VertexType vertexType;
         std::set<VertexID> incomingEdges;
         const_cast<OrientedGraph*>(this)->GetVertexInfoMaybeDestroy(vertex, exists, vertexType, NULL, NULL, &incomingEdges, NULL);
-        nocycle_assert(exists);
+        assert(exists);
         return incomingEdges;
     }
 
 public:
     bool HasLinkage(VertexID fromVertex, VertexID toVertex, bool* forwardEdge = NULL, bool* reverseEdge = NULL) const {
-        nocycle_assert(fromVertex != toVertex);
-        nocycle_assert(VertexExists(fromVertex));
-        nocycle_assert(VertexExists(toVertex));
+        assert(fromVertex != toVertex);
+        assert(VertexExists(fromVertex));
+        assert(VertexExists(toVertex));
 
         VertexID vertexL = fromVertex > toVertex ? fromVertex : toVertex;
         VertexID vertexS = fromVertex > toVertex ? toVertex : fromVertex;
@@ -449,9 +449,9 @@ public:
 
 public:
     bool SetEdge(VertexID fromVertex, VertexID toVertex) {
-        nocycle_assert(fromVertex != toVertex);
-        nocycle_assert(VertexExists(fromVertex));
-        nocycle_assert(VertexExists(toVertex));
+        assert(fromVertex != toVertex);
+        assert(VertexExists(fromVertex));
+        assert(VertexExists(toVertex));
 
         VertexID vertexL = fromVertex > toVertex ? fromVertex : toVertex;
         VertexID vertexS = fromVertex > toVertex ? toVertex : fromVertex;
@@ -466,11 +466,11 @@ public:
                     return true;
                 }
                 case highPointsToLow: {
-                    nocycle_assert(false);
+                    assert(false);
                     return false;
                 }
                 default: {
-                    nocycle_assert(false);
+                    assert(false);
                     return false;
                 }
             }
@@ -483,11 +483,11 @@ public:
                     return true;
                 }
                 case lowPointsToHigh: {
-                    nocycle_assert(false);
+                    assert(false);
                     return false;
                 }
                 default: {
-                    nocycle_assert(false);
+                    assert(false);
                     return false;
                 }
             }
@@ -497,19 +497,19 @@ public:
     }
     void AddEdge(VertexID fromVertex, VertexID toVertex) {
         if (!SetEdge(fromVertex, toVertex))
-            nocycle_assert(false);
+            assert(false);
     }
     bool ClearEdge(VertexID fromVertex, VertexID toVertex) {
-        nocycle_assert(fromVertex != toVertex);
+        assert(fromVertex != toVertex);
 
         bool fromExists;
         VertexType fromVertexType;
         GetVertexInfo(fromVertex, fromExists, fromVertexType);
-        nocycle_assert(fromExists);
+        assert(fromExists);
         bool toExists;
         VertexType toVertexType;
         GetVertexInfo(toVertex, toExists, toVertexType);
-        nocycle_assert(toExists);
+        assert(toExists);
 
         VertexID vertexL = fromVertex > toVertex ? fromVertex : toVertex;
         VertexID vertexS = fromVertex > toVertex ? toVertex : fromVertex;
@@ -528,7 +528,7 @@ public:
                 }
 
                 default: {
-                    nocycle_assert(false);
+                    assert(false);
                     return false;
                 }
             }
@@ -545,7 +545,7 @@ public:
                 }
 
                 default: {
-                    nocycle_assert(false);
+                    assert(false);
                     return false;
                 }
             }
@@ -553,7 +553,7 @@ public:
     }
     void RemoveEdge(VertexID fromVertex, VertexID toVertex) {
         if (!ClearEdge(fromVertex, toVertex))
-            nocycle_assert(false);
+            assert(false);
     }
 
 // Construction and destruction

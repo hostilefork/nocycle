@@ -50,18 +50,6 @@ option (NSTATE_SELFTEST "Self-test Nstate library?" NO)
 option (ORIENTEDGRAPH_SELFTEST "Self-test Oriented Graph?" NO)
 option (DIRECTEDACYCLICGRAPH_SELFTEST "Self-test Directed Acyclic Graph?" NO)
 
-# Asserts are known to slow down the debug build.  But sometimes, you want to
-# have debug symbols available while still not having assertions run...e.g. so
-# you can pause to see where execution is getting held up.
-#
-# !!! This should be redone with NDEBUG, which <cassert> supports
-#
-option (
-    DEACTIVATE_NOCYCLE_ASSERT
-    "Deactivate nocycle asserts even in the debug build?"
-    NO
-)
-
 # Experimental attempt to cache transitive closure, not for general use
 #
 option (

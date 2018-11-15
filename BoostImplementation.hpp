@@ -98,7 +98,7 @@ class BoostOrientedGraph : public BoostBaseGraph  {
     void CreateVertex(DirectedAcyclicGraph::VertexID vertex) {
       #if BOOSTIMPLEMENTATION_TRACK_EXISTENCE
         BoostVertex bv = boost::vertex(vertex, *this);
-        nocycle_assert(!(*this)[bv].exists);
+        assert(!(*this)[bv].exists);
         (*this)[bv].exists = true;
       #else
         // do nothing; CreateVertex is a noop, but DestroyVertex is illegal
@@ -107,7 +107,7 @@ class BoostOrientedGraph : public BoostBaseGraph  {
     void DestroyVertex(DirectedAcyclicGraph::VertexID vertex) {
       #if BOOSTIMPLEMENTATION_TRACK_EXISTENCE
         BoostVertex bv = boost::vertex(vertex, *this);
-        nocycle_assert((*this)[bv].exists);
+        assert((*this)[bv].exists);
         (*this)[bv].exists = false;
 
         // 1. remove_vertex is not implemented in boost::adjacency_matrix
@@ -117,7 +117,7 @@ class BoostOrientedGraph : public BoostBaseGraph  {
 
         boost::clear_vertex(bv, (*this)); // only removes incoming and outgoing edges
       #else
-        nocycle_assert(false);
+        assert(false);
       #endif
     }
     bool VertexExists(DirectedAcyclicGraph::VertexID vertex) const {
@@ -133,7 +133,7 @@ class BoostOrientedGraph : public BoostBaseGraph  {
 
   public:
     std::set<DirectedAcyclicGraph::VertexID> OutgoingEdgesForVertex(VertexID vertex) const {
-        nocycle_assert(VertexExists(vertex));
+        assert(VertexExists(vertex));
 
         BoostVertex bv = boost::vertex(vertex, *this);
         BoostGraphTraits::out_edge_iterator out_i, out_end;
@@ -147,7 +147,7 @@ class BoostOrientedGraph : public BoostBaseGraph  {
         while (out_i != out_end) {
             BoostGraphTraits::edge_descriptor e = *out_i;
             BoostVertex src = boost::source(e, *this);
-            nocycle_assert(src == bv);
+            assert(src == bv);
             BoostVertex targ = boost::target(e, *this);
             outgoing.insert(v_index[targ]);
             ++out_i;
@@ -155,7 +155,7 @@ class BoostOrientedGraph : public BoostBaseGraph  {
         return outgoing;
     }
     std::set<DirectedAcyclicGraph::VertexID> IncomingEdgesForVertex(VertexID vertex) const {
-        nocycle_assert(VertexExists(vertex));
+        assert(VertexExists(vertex));
 
         BoostVertex bv = boost::vertex(vertex, *this);
         BoostGraphTraits::in_edge_iterator in_i, in_end;
@@ -169,7 +169,7 @@ class BoostOrientedGraph : public BoostBaseGraph  {
         while (in_i != in_end) {
             BoostGraphTraits::edge_descriptor e = *in_i;
             BoostVertex targ = boost::target(e, *this);
-            nocycle_assert(targ == bv);
+            assert(targ == bv);
             BoostVertex src = boost::source(e, *this);
             incoming.insert(v_index[src]);
             ++in_i;
@@ -187,7 +187,7 @@ class BoostOrientedGraph : public BoostBaseGraph  {
         bool edgeExists;
 
         tie(be, edgeExists) = boost::edge(bvSource, bvDest, (*this));
-        nocycle_assert(edgeExists);
+        assert(edgeExists);
 
         return (*this)[be].tristate;
     }
@@ -199,7 +199,7 @@ class BoostOrientedGraph : public BoostBaseGraph  {
         bool edgeExists;
 
         tie(be, edgeExists) = boost::edge(bvSource, bvDest, (*this));
-        nocycle_assert(edgeExists);
+        assert(edgeExists);
 
         (*this)[be].tristate = tristate;
     }
@@ -234,8 +234,8 @@ class BoostOrientedGraph : public BoostBaseGraph  {
         return forwardEdge;
     }
     bool SetEdge(VertexID fromVertex, VertexID toVertex) {
-        nocycle_assert(VertexExists(fromVertex));
-        nocycle_assert(VertexExists(toVertex));
+        assert(VertexExists(fromVertex));
+        assert(VertexExists(toVertex));
 
         BoostVertex bvSource = boost::vertex(fromVertex, (*this));
         BoostVertex bvDest = boost::vertex(toVertex, (*this));
@@ -252,7 +252,7 @@ class BoostOrientedGraph : public BoostBaseGraph  {
     }
     void AddEdge(VertexID fromVertex, VertexID toVertex) {
         if (!SetEdge(fromVertex, toVertex))
-            nocycle_assert(false);
+            assert(false);
     }
     bool ClearEdge(VertexID fromVertex, VertexID toVertex) {
         BoostVertex bvSource = boost::vertex(fromVertex, (*this));
@@ -270,7 +270,7 @@ class BoostOrientedGraph : public BoostBaseGraph  {
     }
     void RemoveEdge(VertexID fromVertex, VertexID toVertex) {
         if (!ClearEdge(fromVertex, toVertex))
-            nocycle_assert(false);
+            assert(false);
     }
     bool operator == (const OrientedGraph & og) const {
         if (og.GetFirstInvalidVertexID() != boost::num_vertices(*this))
@@ -294,8 +294,8 @@ class BoostOrientedGraph : public BoostBaseGraph  {
             std::set<VertexID> incomingEdges = og.IncomingEdgesForVertex(vertexCheck);
             std::set<VertexID> outgoingEdges = og.OutgoingEdgesForVertex(vertexCheck);
 
-            nocycle_assert(incomingEdges == this->IncomingEdgesForVertex(vertexCheck));
-            nocycle_assert(outgoingEdges == this->OutgoingEdgesForVertex(vertexCheck));
+            assert(incomingEdges == this->IncomingEdgesForVertex(vertexCheck));
+            assert(outgoingEdges == this->OutgoingEdgesForVertex(vertexCheck));
 
             for (VertexID vertexOther = 0; vertexOther < og.GetFirstInvalidVertexID(); vertexOther++) {
                 BoostVertex bvOther = boost::vertex(vertexOther, *this);
@@ -320,21 +320,21 @@ class BoostOrientedGraph : public BoostBaseGraph  {
                     if (this->EdgeExists(vertexCheck, vertexOther)) {
                         if (!forwardEdgeInOg)
                             return false;
-                        nocycle_assert(outgoingEdges.find(vertexOther) != outgoingEdges.end());
+                        assert(outgoingEdges.find(vertexOther) != outgoingEdges.end());
                     } else {
                         if (forwardEdgeInOg)
                             return false;
-                        nocycle_assert(outgoingEdges.find(vertexOther) == outgoingEdges.end());
+                        assert(outgoingEdges.find(vertexOther) == outgoingEdges.end());
                     }
 
                     if (this->EdgeExists(vertexOther, vertexCheck)) {
                         if (!reverseEdgeInOg)
                             return false;
-                        nocycle_assert(incomingEdges.find(vertexOther) != incomingEdges.end());
+                        assert(incomingEdges.find(vertexOther) != incomingEdges.end());
                     } else {
                         if (reverseEdgeInOg)
                             return false;
-                        nocycle_assert(incomingEdges.find(vertexOther) == incomingEdges.end());
+                        assert(incomingEdges.find(vertexOther) == incomingEdges.end());
                     }
                 }
             }
@@ -487,7 +487,7 @@ class BoostDirectedAcyclicGraph : public BoostOrientedGraph {
     }
     void AddEdge(VertexID fromVertex, VertexID toVertex) {
         if (!SetEdge(fromVertex, toVertex))
-            nocycle_assert(false);
+            assert(false);
     }
     bool operator == (const DirectedAcyclicGraph & dag) const {
         if (static_cast<const BoostOrientedGraph&>(*this) != static_cast<const OrientedGraph&>(dag))
