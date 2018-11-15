@@ -19,9 +19,9 @@
 #define BOOSTIMPLEMENTATION_HPP
 
 #include <utility> // boost makes heavy use of "std::pair"
-#include "boost/graph/graph_traits.hpp"
-#include "boost/graph/adjacency_matrix.hpp"
-#include "boost/graph/depth_first_search.hpp"
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/adjacency_matrix.hpp>
+#include <boost/graph/depth_first_search.hpp>
 
 #include "OrientedGraph.hpp"
 #include "DirectedAcyclicGraph.hpp"
@@ -29,36 +29,32 @@
 namespace nocycle {
 
 struct BoostVertexProperties {
-#if BOOSTIMPLEMENTATION_TRACK_EXISTENCE
+  #if BOOSTIMPLEMENTATION_TRACK_EXISTENCE || DIRECTEDACYCLICGRAPH_USER_TRISTATE
     bool exists;
-#endif
+  #endif
 };
 
 struct BoostEdgeProperties {
-#if DIRECTEDACYCLICGRAPH_USER_TRISTATE
+  #if DIRECTEDACYCLICGRAPH_USER_TRISTATE
     Nstate<3> tristate;
-#endif
+  #endif
 };
 
 typedef boost::adjacency_matrix<
-    // directedS does not allow easy access to "in_edges" in adjacency_list
-    // so you have to use bidirectionalS...which is unfortunately not supported by adjacency_matrix (!)
-    // but fortunately adjacency_matrix supports in_edges on directedS.  go figure.
-    boost::directedS
+    //
+    // `directedS` does not allow easy access to `in_edges` in `adjacency_list`
+    // so you'd have to use `bidirectionalS`, which is unfortunately not
+    // supported by `adjacency_matrix` (!).  But fortunately for this code,
+    // `adjacency_matrix` supports in_edges on `directedS`.  Go figure.
+    //
+    boost::directedS,
 
-    // "bundled properties" http://www.boost.org/doc/libs/1_38_0/libs/graph/doc/bundles.html
-#if BOOSTIMPLEMENTATION_TRACK_EXISTENCE || DIRECTEDACYCLICGRAPH_USER_TRISTATE
-    , BoostVertexProperties
-#else
-    /*, void*/ // does not work for null property, hence DIRECTEDACYCLICGRAPH_USER_TRISTATE above
-#endif
-
-#if DIRECTEDACYCLICGRAPH_USER_TRISTATE
-    , BoostEdgeProperties
-#else
-    /*, void*/ // does not work for null property
-#endif
-    > BoostBaseGraph;
+    // "bundled properties"
+    // http://www.boost.org/doc/libs/1_38_0/libs/graph/doc/bundles.html
+    //
+    BoostVertexProperties,
+    BoostEdgeProperties
+> BoostBaseGraph;
 
 typedef boost::graph_traits<BoostBaseGraph> BoostGraphTraits;
 
@@ -78,7 +74,6 @@ typedef boost::graph_traits<BoostBaseGraph> BoostGraphTraits;
 //
 typedef BoostGraphTraits::vertex_descriptor BoostVertex;
 typedef BoostGraphTraits::edge_descriptor BoostEdge;
-typedef boost::property_map<BoostBaseGraph, boost::vertex_color_t>::type BoostVertexColorMap;
 
 // http://www.boost.org/doc/libs/1_38_0/libs/graph/doc/using_adjacency_list.html
 
@@ -421,8 +416,6 @@ private:
 
 public:
     bool SetEdge(VertexID fromVertex, VertexID toVertex) {
-
-        BoostVertexColorMap colorMap = boost::get(boost::vertex_color, (*this));
 
         if (0) {
 
