@@ -23,8 +23,9 @@
 #define USE_BOOST_GRAPH_IMPLEMENTATION 0
 
 // Some regression tests require boost to be included in your library path
-// so make sure you've turned off the self tests in NocycleSettings.hpp if
-// you don't have boost
+// so make sure you've turned off the self tests (NSTATE_SELFTEST,
+// ORIENTEDGRAPH_SELFTEST, DIRECTEDACYCLICGRAPH_SELFTEST) if you don't want
+// to build with boost
 #define REGRESSION_TESTS 0
 
 const unsigned NUM_TEST_NODES = /* 65536 + 1024 */ 1024;
