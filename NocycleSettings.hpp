@@ -1,5 +1,5 @@
 //
-//  NocycleSettings.hpp - Until a build system with CMake or such gets 
+//  NocycleSettings.hpp - Until a build system with CMake or such gets
 //     set up, this is a centralization of the flags for conditional
 //     compilation of the Nocycle library...mostly to do with debug
 //     code.  Although the boost library is needed for much of the
@@ -19,7 +19,7 @@
 #ifndef NOCYCLESETTINGS_HPP
 #define NOCYCLESETTINGS_HPP
 
-// Note: Regarding the debate of whether to use #define/#undef and #ifdef or 
+// Note: Regarding the debate of whether to use #define/#undef and #ifdef or
 // to use #define 0/1 and #if, I'm in the latter camp.  For rationale:
 // http://stackoverflow.com/questions/135069/ifdef-vs-if-which-is-bettersafer
 
@@ -31,8 +31,8 @@
 #define DIRECTEDACYCLICGRAPH_SELFTEST 0
 
 // Though nocycle distinguishes between vertices that have no connections
-// and those which "don't exist", boost's default assumption is that 
-// all nodes in its capacity "exist".  The only way to conceptually delete 
+// and those which "don't exist", boost's default assumption is that
+// all nodes in its capacity "exist".  The only way to conceptually delete
 // a boost vertex from an adjacency_matrix it is to remove all of its
 // incoming and outgoing connections.  Though it is possible to inject
 // a vertex property map to track existence, the property map adds overhead
@@ -81,19 +81,19 @@
 //
 
 #if DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
-#	if DIRECTEDACYCLICGRAPH_USER_TRISTATE && DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
-#		error Can't use DIRECTEDACYCLICGRAPH_USER_TRISTATE and DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK together
-#	endif
+#   if DIRECTEDACYCLICGRAPH_USER_TRISTATE && DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
+#       error Can't use DIRECTEDACYCLICGRAPH_USER_TRISTATE and DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK together
+#   endif
 #else
-#	if DIRECTEDACYCLICGRAPH_USER_TRISTATE
-#		error Can't use DIRECTEDACYCLICGRAPH_USER_TRISTATE without DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
-#	endif
-#	if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
-#		error Can't use DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK without DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
-#	endif
-#	if DIRECTEDACYCLICGRAPH_CONSISTENCY_CHECK
-#		error Can't use DIRECTEDACYCLICGRAPH_CONSISTENCY_CHECK 
-#	endif
+#   if DIRECTEDACYCLICGRAPH_USER_TRISTATE
+#       error Can't use DIRECTEDACYCLICGRAPH_USER_TRISTATE without DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
+#   endif
+#   if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
+#       error Can't use DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK without DIRECTEDACYCLICGRAPH_CACHE_REACHABILITY
+#   endif
+#   if DIRECTEDACYCLICGRAPH_CONSISTENCY_CHECK
+#       error Can't use DIRECTEDACYCLICGRAPH_CONSISTENCY_CHECK
+#   endif
 #endif
 
 #endif
