@@ -88,7 +88,7 @@ class PowerTable {
   private:
     std::vector<unsigned> m_table;
   public:
-    PowerTable (int radix) {
+    PowerTable (unsigned radix) {
         unsigned nstatesInUnsigned = static_cast<unsigned>(floor(log(2)/log(radix)*CHAR_BIT*sizeof(unsigned)));
         PackedTypeForNstate value = 1;
         for (unsigned index = 0; index < nstatesInUnsigned; index++) {
@@ -221,7 +221,7 @@ class NstateArray {
             // nstates we are fitting in the lastmost packed value, we must set
             // the trailing unused nstates to zero if we are using fewer nstates
             // than we were before
-            for (int eraseDigit = newMaxDigitNeeded; eraseDigit < oldMaxDigitNeeded; eraseDigit++) {
+            for (auto eraseDigit = newMaxDigitNeeded; eraseDigit < oldMaxDigitNeeded; eraseDigit++) {
                 m_buffer[newBufferSize - 1] =
                     SetDigitInPackedValue(m_buffer[newBufferSize - 1], eraseDigit, 0);
             }
@@ -231,7 +231,7 @@ class NstateArray {
             // If the number of tristates we are using isn't an even multiple of the
             // # of states that fit in a packed type, then shrinking will leave some
             // residual values we need to reset to zero in the last element of the vector.
-            for (int eraseDigit = newMaxDigitNeeded; eraseDigit < NstatesInPackedType(); eraseDigit++) {
+            for (auto eraseDigit = newMaxDigitNeeded; eraseDigit < NstatesInPackedType(); eraseDigit++) {
                 m_buffer[newBufferSize - 1] =
                     SetDigitInPackedValue(m_buffer[newBufferSize - 1], eraseDigit, 0);
             }

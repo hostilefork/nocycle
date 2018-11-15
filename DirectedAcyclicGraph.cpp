@@ -171,7 +171,7 @@ bool DirectedAcyclicGraph::SelfTest() {
                 dag.GetRandomNonEdge(vertexSource, vertexDest);
 
               #if DIRECTEDACYCLICGRAPH_USER_TRISTATE
-                Nstate<3> randomTristate (rand() % 3);
+                Nstate<3> randomTristate (static_cast<unsigned>(rand()) % 3);
               #endif
 
                 bool causedCycleInBoost = false;

@@ -132,6 +132,118 @@ configure_file (${CMAKE_CURRENT_SOURCE_DIR}/NocycleConfig.hpp.in
 include_directories (${CMAKE_CURRENT_BINARY_DIR})
 
 
+### COMPILER FLAGS ###
+
+macro (add_cxx_flags flags)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flags}")
+endmacro ()
+
+# Nocycle was initially C++98, but as it is just some old experimental code it
+# might as well be a place to try usages of C++17 features.
+#
+# Note that this *should* work:
+#
+#     set(CMAKE_CXX_STANDARD 17)
+#
+# But for some reason it isn't working on the CMake with Travis CI.
+#
+# http://stackoverflow.com/questions/40877744/
+#
+add_cxx_flags("-std=c++17")
+
+# Turn up the warnings very high.
+#
+#     http://stackoverflow.com/a/9862800/211160
+#
+# Currently not adding in `-Wshadow`, because @HostileFork likes naming
+# constructor arguments the same thing as the variables they initialize.
+#
+# For compiler identification notes:
+#
+#     http://stackoverflow.com/a/10055571/211160
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+
+    # GCC and regular Clang or AppleClang share a lot of compatible switches
+
+    add_cxx_flags(-Wall)
+    add_cxx_flags(-Wsign-conversion)
+    add_cxx_flags(-Wextra)
+    add_cxx_flags(-Wcast-align)
+    add_cxx_flags(-Wctor-dtor-privacy)
+    add_cxx_flags(-Wdisabled-optimization)
+    add_cxx_flags(-Wformat=2)
+    add_cxx_flags(-Winit-self)
+    add_cxx_flags(-Wmissing-declarations)
+    add_cxx_flags(-Wmissing-include-dirs)
+    add_cxx_flags(-Woverloaded-virtual)
+    add_cxx_flags(-Wredundant-decls)
+    add_cxx_flags(-Wsign-promo)
+    add_cxx_flags(-Wstrict-overflow=5)
+    add_cxx_flags(-Wswitch-default)
+    add_cxx_flags(-Wundef)
+    add_cxx_flags(-Wno-unused)
+    add_cxx_flags(-pedantic)
+
+    # We encourage *everyone* who is building the project to use the `-Werror`
+    # switch.  This converts messages that are considered "warnings" to the
+    # status of being show-stopper errors.  Being rigorous about this helps
+    # keep distracting warnings from accumulating in the build process over
+    # time, drowning out important messages that should be heeded.
+    #
+    # However...this idealism isn't long-term compatible with telling the
+    # compiler it can throw in as many errors as it can think of (via the
+    # switches `-Wpedantic`, `-Wall`, and `-Wextra`).  Each time a new
+    # compiler or new compiler version is used to build the project, it may
+    # invent new and never before seen warnings that haven't been explicitly
+    # disabled yet.
+    #
+    # Reports to help adjust the warnings to keep them at zero on relevant
+    # platforms are preferred to turning off the switch.  But the switch is
+    # available to use on the command line: `-DRIGOROUS=no`
+
+    if(NOT DEFINED(RIGOROUS) OR RIGOROUS)
+        add_cxx_flags(-Werror)
+    endif()
+
+endif()
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+
+    # using regular Clang or AppleClang
+
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+
+    # using GCC
+
+    add_cxx_flags(-Wlogical-op)
+    add_cxx_flags(-Wstrict-null-sentinel)
+
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+
+    # using Visual Studio C++ (note C++11 and beyond support on by default)
+
+else()
+
+    # !!! If you're not using GCC, Clang, or MSVC then you're pretty much on
+    # your own.  Pull requests welcome, however.
+    #
+    # e.g. if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")...
+
+endif()
+
+
+### ADDRESS SANITIZER ###
+
+if (SANITIZE MATCHES "yes")
+    add_cxx_flags(-fno-omit-frame-pointer)
+    add_cxx_flags(-fsanitize=address)
+
+    add_link_debug_flags(-fno-omit-frame-pointer)
+    add_link_debug_flags(-fsanitize=address)
+endif ()
+
+
 ### BUILD STEPS ###
 ### http://public.kitware.com/cgi-bin/viewcvs.cgi/Tests/Tutorial/?root=CMake
 

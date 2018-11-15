@@ -123,7 +123,7 @@ class RandomEdgePicker : public Base {
             assert(numEdgesCheck == m_numEdges);
         }
 
-        unsigned edgeIndexToRemove = rand() % m_numEdges;
+        unsigned edgeIndexToRemove = static_cast<unsigned>(rand()) % m_numEdges;
         unsigned edgeIndex = edgeIndexToRemove;
         typename std::map<size_t, std::set<VertexID> >::const_iterator verticesByOutgoingEdgeCountIter =
             m_verticesByOutgoingEdgeCount.begin();
@@ -167,15 +167,17 @@ class RandomEdgePicker : public Base {
     void GetRandomNonEdge(VertexID& fromVertex, VertexID& toVertex) const {
         VertexID maxID = Base::GetFirstInvalidVertexID();
 
-        // for the moment, we assume the graph is not so dense that this will take
-        // an inordinate amount of time, but we could in theory use a reverse
-        // of the above approach
+        // For the moment, we assume the graph is not so dense that this will
+        // take an inordinate amount of time, but we could in theory use a
+        // reverse of the above approach.
+        //
+        // !!! Should C++ std::uniform_int_distribution() be used instead?
         do {
             do {
-                fromVertex = rand() % maxID;
+                fromVertex = static_cast<unsigned>(rand()) % maxID;
             } while (!Base::VertexExists(fromVertex));
             do {
-                toVertex = rand() % maxID;
+                toVertex = static_cast<unsigned>(rand()) % maxID;
             } while ((fromVertex == toVertex) || (!Base::VertexExists(toVertex)));
         } while (Base::HasLinkage(fromVertex, toVertex));
     }
