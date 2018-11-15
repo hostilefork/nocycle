@@ -23,8 +23,10 @@
 
 #include <limits> // numeric_limits
 #include <set>
+#include <cassert>
 
-#include "nstate/Nstate.hpp"
+#include "Nstate.hpp"
+//#include "nstate/Nstate.hpp"
 
 namespace nocycle {
 

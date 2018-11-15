@@ -33,7 +33,8 @@ const float REMOVE_PROBABILITY = 1.0/8.0;
 
 #include <iostream>
 
-#include "nstate/Nstate.hpp"
+#include "Nstate.hpp"
+//#include "nstate/Nstate.hpp"
 #include "OrientedGraph.hpp"
 #include "DirectedAcyclicGraph.hpp"
 
