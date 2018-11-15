@@ -165,19 +165,22 @@ class OrientedGraph {
         bool compactIfDestroy = true
     ){
         switch (m_buffer[TristateIndexForExistence(vertexE)]) {
-            case doesNotExist:
-                exists = false;
-                break;
-            case existsAsTypeOne:
-                exists = true;
-                vertexType = vertexTypeOne;
-                break;
-            case existsAsTypeTwo:
-                exists = true;
-                vertexType = vertexTypeTwo;
-                break;
-            default:
-                assert(false);
+          case doesNotExist:
+            exists = false;
+            break;
+
+          case existsAsTypeOne:
+            exists = true;
+            vertexType = vertexTypeOne;
+            break;
+
+          case existsAsTypeTwo:
+            exists = true;
+            vertexType = vertexTypeTwo;
+            break;
+
+          default:
+            assert(false);
         }
 
         if (outgoingEdgeCount != NULL)
@@ -196,37 +199,41 @@ class OrientedGraph {
 
                 VertexID vertexS = vertexT < vertexE ? vertexT : vertexE;
                 VertexID vertexL = vertexT > vertexE ? vertexT : vertexE;
-                switch(m_buffer[TristateIndexForConnection(vertexS, vertexL)]) {
-                    case notConnected:
-                        continue;
-                    case lowPointsToHigh:
-                        if (vertexE < vertexT) {
-                            if (outgoingEdgeCount != NULL)
-                                (*outgoingEdgeCount)++;
-                            if (outgoingEdges != NULL)
-                                outgoingEdges->insert(vertexT);
-                        } else {
-                            if (incomingEdgeCount != NULL)
-                                (*incomingEdgeCount)++;
-                            if (incomingEdges != NULL)
-                                incomingEdges->insert(vertexT);
-                        }
-                        break;
-                    case highPointsToLow:
-                        if (vertexE > vertexT) {
-                            if (outgoingEdgeCount != NULL)
-                                (*outgoingEdgeCount)++;
-                            if (outgoingEdges != NULL)
-                                outgoingEdges->insert(vertexT);
-                        } else {
-                            if (incomingEdgeCount != NULL)
-                                (*incomingEdgeCount)++;
-                            if (incomingEdges != NULL)
-                                incomingEdges->insert(vertexT);
-                        }
-                        break;
-                    default:
-                        assert(false);
+
+                switch (m_buffer[TristateIndexForConnection(vertexS, vertexL)]) {
+                  case notConnected:
+                    continue;
+
+                  case lowPointsToHigh:
+                    if (vertexE < vertexT) {
+                        if (outgoingEdgeCount != NULL)
+                            (*outgoingEdgeCount)++;
+                        if (outgoingEdges != NULL)
+                            outgoingEdges->insert(vertexT);
+                    } else {
+                        if (incomingEdgeCount != NULL)
+                            (*incomingEdgeCount)++;
+                        if (incomingEdges != NULL)
+                            incomingEdges->insert(vertexT);
+                    }
+                    break;
+
+                  case highPointsToLow:
+                    if (vertexE > vertexT) {
+                        if (outgoingEdgeCount != NULL)
+                            (*outgoingEdgeCount)++;
+                        if (outgoingEdges != NULL)
+                            outgoingEdges->insert(vertexT);
+                    } else {
+                        if (incomingEdgeCount != NULL)
+                            (*incomingEdgeCount)++;
+                        if (incomingEdges != NULL)
+                            incomingEdges->insert(vertexT);
+                    }
+                    break;
+
+                  default:
+                    assert(false);
                 }
 
                 // Destroying a vertex's existence also destroys all incoming and outgoing connections for that vertex
@@ -235,7 +242,7 @@ class OrientedGraph {
             }
         }
 
-        if(destroyIfExists && exists) {
+        if (destroyIfExists && exists) {
             m_buffer[TristateIndexForExistence(vertexE)] = doesNotExist;
 
             // caller can tell us to make a destruction do a compaction
@@ -459,40 +466,38 @@ public:
         size_t tifc = TristateIndexForConnection(vertexS, vertexL);
         if (toVertex > fromVertex) {
             switch (m_buffer[tifc]) {
-                case lowPointsToHigh:
-                    return false;
-                case notConnected: {
-                    m_buffer[tifc] = lowPointsToHigh;
-                    return true;
-                }
-                case highPointsToLow: {
-                    assert(false);
-                    return false;
-                }
-                default: {
-                    assert(false);
-                    return false;
-                }
+              case lowPointsToHigh:
+                return false;
+
+              case notConnected:
+                m_buffer[tifc] = lowPointsToHigh;
+                return true;
+
+              case highPointsToLow:
+                assert(false);
+                return false;
+
+              default:
+                assert(false);
+                return false;
             }
         } else {
             switch (m_buffer[tifc]) {
-                case highPointsToLow:
-                    return false;
-                case notConnected: {
-                    m_buffer[tifc] = highPointsToLow;
-                    return true;
-                }
-                case lowPointsToHigh: {
-                    assert(false);
-                    return false;
-                }
-                default: {
-                    assert(false);
-                    return false;
-                }
+              case highPointsToLow:
+                return false;
+
+              case notConnected:
+                m_buffer[tifc] = highPointsToLow;
+                return true;
+
+              case lowPointsToHigh:
+                assert(false);
+                return false;
+
+              default:
+                assert(false);
+                return false;
             }
-
-
         }
     }
     void AddEdge(VertexID fromVertex, VertexID toVertex) {
@@ -516,38 +521,32 @@ public:
 
         size_t tifc = TristateIndexForConnection(vertexS, vertexL);
         if (toVertex > fromVertex) {
-            switch(m_buffer[tifc]) {
-                case lowPointsToHigh: {
-                    m_buffer[tifc] = notConnected;
-                    return true;
-                }
+            switch (m_buffer[tifc]) {
+              case lowPointsToHigh:
+                m_buffer[tifc] = notConnected;
+                return true;
 
-                case notConnected:
-                case highPointsToLow: {
-                    return false;
-                }
+              case notConnected:
+              case highPointsToLow:
+                return false;
 
-                default: {
-                    assert(false);
-                    return false;
-                }
+              default:
+                assert(false);
+                return false;
             }
         } else {
             switch (m_buffer[tifc]) {
-                case highPointsToLow: {
-                    m_buffer[tifc] = notConnected;
-                    return true;
-                }
+              case highPointsToLow:
+                m_buffer[tifc] = notConnected;
+                return true;
 
-                case notConnected:
-                case lowPointsToHigh: {
-                    return false;
-                }
+              case notConnected:
+              case lowPointsToHigh:
+                return false;
 
-                default: {
-                    assert(false);
-                    return false;
-                }
+              default:
+                assert(false);
+                return false;
             }
         }
     }

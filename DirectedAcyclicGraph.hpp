@@ -127,27 +127,27 @@ class DirectedAcyclicGraph : public OrientedGraph {
         m_canreach.HasLinkage(fromVertex, toVertex, &forwardEdge, &reverseEdge);
 
         switch (tristate) {
-            case 0: {
-                if (forwardEdge)
-                    m_canreach.RemoveEdge(fromVertex, toVertex);
-                if (reverseEdge)
-                    m_canreach.RemoveEdge(toVertex, fromVertex);
-                break;
-            }
-            case 1: {
-                if (reverseEdge)
-                    m_canreach.RemoveEdge(toVertex, fromVertex);
-                m_canreach.SetEdge(fromVertex, toVertex);
-                break;
-            }
-            case 2: {
-                if (forwardEdge)
-                    m_canreach.RemoveEdge(fromVertex, toVertex);
-                m_canreach.SetEdge(toVertex, fromVertex);
-                break;
-            }
-            default:
-                assert(false);
+          case 0:
+            if (forwardEdge)
+                m_canreach.RemoveEdge(fromVertex, toVertex);
+            if (reverseEdge)
+                m_canreach.RemoveEdge(toVertex, fromVertex);
+            break;
+
+          case 1:
+            if (reverseEdge)
+                m_canreach.RemoveEdge(toVertex, fromVertex);
+            m_canreach.SetEdge(fromVertex, toVertex);
+            break;
+
+          case 2:
+            if (forwardEdge)
+                m_canreach.RemoveEdge(fromVertex, toVertex);
+            m_canreach.SetEdge(toVertex, fromVertex);
+            break;
+
+          default:
+            assert(false);
         }
     }
 
@@ -326,21 +326,19 @@ public:
         // for "dirtiness"
 
         switch (m_canreach.GetVertexType(fromVertex)) {
-            case canreachClean: {
-                return m_canreach.EdgeExists(fromVertex, toVertex);
-            }
+          case canreachClean:
+            return m_canreach.EdgeExists(fromVertex, toVertex);
 
-            case canreachMayHaveFalsePositives: {
-                if (!m_canreach.EdgeExists(fromVertex, toVertex))
-                    return false;
-                CleanUpReachability(fromVertex, toVertex);
-                return m_canreach.EdgeExists(fromVertex, toVertex);
-            }
-
-            default:
-                assert(false);
+          case canreachMayHaveFalsePositives:
+            if (!m_canreach.EdgeExists(fromVertex, toVertex))
                 return false;
-        };
+            CleanUpReachability(fromVertex, toVertex);
+            return m_canreach.EdgeExists(fromVertex, toVertex);
+
+          default:
+            assert(false);
+            return false;
+        }
 
         assert(false);
         return false;
@@ -573,7 +571,7 @@ public:
           #endif
 
             std::set<OrientedGraph::VertexID>::iterator iterToCanreach = toCanreach.begin();
-            while(iterToCanreach != toCanreach.end()) {
+            while (iterToCanreach != toCanreach.end()) {
 
                 VertexID toCanreachVertex = (*iterToCanreach++);
                 assert(canreachFromVertex != toCanreachVertex);
@@ -664,7 +662,7 @@ public:
         std::set<OrientedGraph::VertexID> canreachFrom = IncomingReachForVertexIncludingSelf(fromVertex);
 
         std::set<OrientedGraph::VertexID>::iterator canreachFromIter = canreachFrom.begin();
-        while(canreachFromIter != canreachFrom.end()) {
+        while (canreachFromIter != canreachFrom.end()) {
             OrientedGraph::VertexID canreachFromVertex = (*canreachFromIter);
             m_canreach.SetVertexType(canreachFromVertex, canreachMayHaveFalsePositives);
             canreachFromIter++;
@@ -739,54 +737,54 @@ public:
             outgoingTransitiveClosure.insert(vertex);
 
             switch (m_canreach.GetVertexType(vertex)) {
-                case canreachClean: {
-                    size_t outgoingReachSize = outgoingReach.size();
-                    size_t outgoingTransitiveClosureSize = outgoingTransitiveClosure.size();
+              case canreachClean: {
+                size_t outgoingReachSize = outgoingReach.size();
+                size_t outgoingTransitiveClosureSize = outgoingTransitiveClosure.size();
 
-                    std::set<VertexID>::iterator outgoingTransitiveClosureIter = outgoingTransitiveClosure.begin();
-                    while (outgoingTransitiveClosureIter != outgoingTransitiveClosure.end()) {
-                        VertexID outgoingTransitiveClosureVertex = (*outgoingTransitiveClosureIter++);
-                        if (outgoingReach.find(outgoingTransitiveClosureVertex) == outgoingReach.end())
-                            return false;
-                    }
-                    assert(outgoingReach.size() == outgoingTransitiveClosure.size());
+                std::set<VertexID>::iterator outgoingTransitiveClosureIter = outgoingTransitiveClosure.begin();
+                while (outgoingTransitiveClosureIter != outgoingTransitiveClosure.end()) {
+                    VertexID outgoingTransitiveClosureVertex = (*outgoingTransitiveClosureIter++);
+                    if (outgoingReach.find(outgoingTransitiveClosureVertex) == outgoingReach.end())
+                        return false;
+                }
+                assert(outgoingReach.size() == outgoingTransitiveClosure.size());
 
-                  #if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
-                    std::set<VertexID>::iterator outgoingIter = outgoing.begin();
-                    while (outgoingIter != outgoing.end()) {
-                        VertexID outgoingVertex = (*outgoingIter++);
-                        std::set<VertexID> outgoingTransitiveWithoutEdge = OutgoingTransitiveVertices(vertex, &outgoingVertex, false);
-                        ExtraTristate extra = static_cast<ExtraTristate>(static_cast<unsigned char>(GetTristateForConnection(vertex, outgoingVertex)));
-                        switch (extra) {
-                        case isReachableWithoutEdge: {
-                            if (outgoingTransitiveWithoutEdge.find(outgoingVertex) == outgoingTransitiveWithoutEdge.end())
-                                return false;
-                            break;
-                        }
-                        case notReachableWithoutEdge: {
-                            if (outgoingTransitiveWithoutEdge.find(outgoingVertex) != outgoingTransitiveWithoutEdge.end())
-                                return false;
-                            break;
-                        }
-                        default:
-                            assert(false);
-                        }
-                    }
-                  #endif
-                    break;
-                }
-                case canreachMayHaveFalsePositives: {
-                    std::set<VertexID>::iterator outgoingTransitiveClosureIter = outgoingTransitiveClosure.begin();
-                    while (outgoingTransitiveClosureIter != outgoingTransitiveClosure.end()) {
-                        VertexID outgoingTransitiveClosureVertex = (*outgoingTransitiveClosureIter++);
-                        if (outgoingReach.find(outgoingTransitiveClosureVertex) == outgoingReach.end())
+              #if DIRECTEDACYCLICGRAPH_CACHE_REACH_WITHOUT_LINK
+                std::set<VertexID>::iterator outgoingIter = outgoing.begin();
+                while (outgoingIter != outgoing.end()) {
+                    VertexID outgoingVertex = (*outgoingIter++);
+                    std::set<VertexID> outgoingTransitiveWithoutEdge = OutgoingTransitiveVertices(vertex, &outgoingVertex, false);
+                    ExtraTristate extra = static_cast<ExtraTristate>(static_cast<unsigned char>(GetTristateForConnection(vertex, outgoingVertex)));
+                    switch (extra) {
+                      case isReachableWithoutEdge:
+                        if (outgoingTransitiveWithoutEdge.find(outgoingVertex) == outgoingTransitiveWithoutEdge.end())
                             return false;
+                        break;
+
+                      case notReachableWithoutEdge:
+                        if (outgoingTransitiveWithoutEdge.find(outgoingVertex) != outgoingTransitiveWithoutEdge.end())
+                            return false;
+                        break;
+
+                      default:
+                        assert(false);
                     }
-                    assert(outgoingReach.size() >= outgoingTransitiveClosure.size());
-                    break;
                 }
-                default:
-                    assert(false);
+              #endif
+                break; }
+
+              case canreachMayHaveFalsePositives: {
+                std::set<VertexID>::iterator outgoingTransitiveClosureIter = outgoingTransitiveClosure.begin();
+                while (outgoingTransitiveClosureIter != outgoingTransitiveClosure.end()) {
+                    VertexID outgoingTransitiveClosureVertex = (*outgoingTransitiveClosureIter++);
+                    if (outgoingReach.find(outgoingTransitiveClosureVertex) == outgoingReach.end())
+                        return false;
+                }
+                assert(outgoingReach.size() >= outgoingTransitiveClosure.size());
+                break; }
+
+              default:
+                assert(false);
             }
         }
 
