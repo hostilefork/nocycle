@@ -14,8 +14,6 @@
 //
 
 #pragma once
-#ifndef NSTATE_HPP
-#define NSTATE_HPP
 
 #include "NocycleConfig.hpp"
 
@@ -305,9 +303,6 @@ PackedTypeForNstate NstateArray<radix>::SetDigitInPackedValue(PackedTypeForNstat
 } // temporary end of namespace nocycle
 
 
-#endif
-
-
 #if NSTATE_SELFTEST
 
 //
@@ -417,4 +412,3 @@ bool NstateArray<radix>::SelfTest() {
 } // end namespace nocycle
 
 #endif
-

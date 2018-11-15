@@ -16,8 +16,6 @@
 //
 
 #pragma once
-#ifndef ORIENTEDGRAPH_HPP
-#define ORIENTEDGRAPH_HPP
 
 #include "NocycleConfig.hpp"
 
@@ -569,5 +567,3 @@ public:
 };
 
 } // end namespace nocycle
-
-#endif

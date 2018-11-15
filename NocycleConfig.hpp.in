@@ -18,8 +18,6 @@
 //
 
 #pragma once
-#ifndef NOCYCLECONFIG_HPP
-#define NOCYCLECONFIG_HPP
 
 // Note: Regarding the debate of whether to use #define/#undef and #ifdef or
 // to use #define 0/1 and #if, I'm in the latter camp.  For rationale:

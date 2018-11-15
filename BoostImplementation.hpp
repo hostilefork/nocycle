@@ -15,8 +15,6 @@
 //
 
 #pragma once
-#ifndef BOOSTIMPLEMENTATION_HPP
-#define BOOSTIMPLEMENTATION_HPP
 
 #include <utility> // boost makes heavy use of "std::pair"
 #include <boost/graph/graph_traits.hpp>
@@ -526,5 +524,3 @@ public:
 };
 
 } // end namespace nocycle
-
-#endif

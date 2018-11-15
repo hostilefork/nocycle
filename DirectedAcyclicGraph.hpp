@@ -14,8 +14,6 @@
 //
 
 #pragma once
-#ifndef DIRECTEDACYCLICGRAPH_HPP
-#define DIRECTEDACYCLICGRAPH_HPP
 
 #include "NocycleConfig.hpp"
 
@@ -809,6 +807,4 @@ public:
     static bool SelfTest();
 };
 
-}
-
-#endif
+} // end namespace nocycle

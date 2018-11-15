@@ -15,8 +15,6 @@
 //
 
 #pragma once
-#ifndef RANDOMEDGEPICKER_HPP
-#define RANDOMEDGEPICKER_HPP
 
 #include "NocycleConfig.hpp"
 
@@ -193,5 +191,3 @@ public:
 };
 
 } // end namespace nocycle
-
-#endif
