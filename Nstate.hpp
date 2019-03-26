@@ -100,6 +100,7 @@ class PowerTable {
         return m_table.size();
     }
     inline PackedTypeForNstate PowerForDigit(unsigned digit) const {
+        assert(digit < m_table.size());
         return m_table[digit];
     }
   public:
@@ -288,12 +289,13 @@ template <int radix>
 PackedTypeForNstate NstateArray<radix>::SetDigitInPackedValue(PackedTypeForNstate packed, unsigned digit, Nstate<radix> t) const {
     assert(digit < NstatesInPackedType());
 
-    PackedTypeForNstate powForDigitPlusOne = PowerForDigit(digit+1);
     PackedTypeForNstate powForDigit = PowerForDigit(digit);
 
     PackedTypeForNstate upperPart = 0;
-    if (digit < (NstatesInPackedType()-1))
+    if (digit < (NstatesInPackedType() - 1)) {
+        PackedTypeForNstate powForDigitPlusOne = PowerForDigit(digit + 1);
         upperPart = (packed / powForDigitPlusOne) * powForDigitPlusOne;
+    }
 
     PackedTypeForNstate setPart = t * powForDigit;
 
